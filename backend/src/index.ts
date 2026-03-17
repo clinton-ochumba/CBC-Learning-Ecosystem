@@ -98,13 +98,13 @@ app.get('/health', async (_req, res) => {
     res.status(503).json({ status: 'degraded', timestamp: new Date().toISOString() });
   }
 });
-Routes that require db/redis will be registered after server starts
+
+// ── API routes ────────────────────────────────────────────────────────────────
+app.use('/api/v1/auth',     authRoutes);
+app.use('/api/v1/payments', mpesaRoutes);
+
+// Routes that require db/redis will be registered after server starts
 // (they are registered in the start() function below)
-// Add further routes here as the application grows:
-// app.use('/api/v1/schools',  schoolRoutes);
-// app.use('/api/v1/students', studentRoutes);
-// app.use('/api/v1/teachers', teacherRoutes);
-// app.use('/api/v1/parents',  parentRoutes);
 
 // ── 404 catch-all ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
@@ -117,7 +117,9 @@ app.use(errorHandler);
 // ── Start server ──────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
-asynconst { db } = await import('./config/database');
+async function start() {
+  try {
+    const { db } = await import('./config/database');
     const { redis } = await import('./config/redis');
     await checkDatabaseConnection();
 
@@ -128,8 +130,6 @@ asynconst { db } = await import('./config/database');
     app.use('/api/v1/ussd',          createUssdRouter(db, redis));
     app.use('/api/v1/sync',          createEventsAndSyncRouter(db, redis));
 
-  try {
-    await checkDatabaseConnection();
     app.listen(PORT, () => {
       logger.info(`[server] ✅ CBC Learning Ecosystem API listening on port ${PORT}`);
       logger.info(`[server]    Environment: ${process.env.NODE_ENV}`);
@@ -143,5 +143,7 @@ asynconst { db } = await import('./config/database');
     process.exit(1);
   }
 }
+
+start();
 
 start();
