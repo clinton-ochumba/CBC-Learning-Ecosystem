@@ -7,13 +7,13 @@
  */
 
 import { Router } from 'express';
-import { Pool } from 'pg';
+import { Knex } from 'knex';
 import { AttendanceController } from '../controllers/attendance.controller';
 import { authenticate, requireRole } from '../middleware/auth';
 
-export function createAttendanceRouter(db: Pool): Router {
+export function createAttendanceRouter(db: Knex): Router {
   const router = Router();
-  const ctrl   = new AttendanceController(db);
+  const ctrl   = new AttendanceController(db as any);
 
   // Mark full-class register — teacher or above
   router.post(

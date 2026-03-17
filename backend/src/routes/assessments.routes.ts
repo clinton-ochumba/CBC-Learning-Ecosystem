@@ -8,13 +8,13 @@
  */
 
 import { Router } from 'express';
-import { Pool } from 'pg';
+import { Knex } from 'knex';
 import { AssessmentsController } from '../controllers/assessments.controller';
-import { authenticate, requireRole, requireSchool } from '../middleware/auth';
+import { authenticate, requireRole, requireSameSchool } from '../middleware/auth';
 
-export function createAssessmentsRouter(db: Pool): Router {
+export function createAssessmentsRouter(db: Knex): Router {
   const router = Router();
-  const ctrl   = new AssessmentsController(db);
+  const ctrl   = new AssessmentsController(db as any);
 
   // Create an assessment — teachers and above
   router.post(
@@ -43,7 +43,7 @@ export function createAssessmentsRouter(db: Pool): Router {
   router.get(
     '/schools/:schoolId',
     authenticate,
-    requireSchool,
+    requireSameSchool,
     ctrl.listAssessments
   );
 

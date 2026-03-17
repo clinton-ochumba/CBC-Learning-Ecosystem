@@ -12,17 +12,17 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { Pool } from 'pg';
+import { Knex } from 'knex';
 import Redis from 'ioredis';
 import { SmsNotificationService } from '../services/sms-notification.service';
 import { OfflineSyncService } from '../services/offline-sync.service';
-import { authenticate, requireRole, requireSchool } from '../middleware/auth';
+import { authenticate, requireRole, requireSameSchool } from '../middleware/auth';
 import { logger } from '../utils/logger';
 
 // ─── Events controller (inline — lightweight enough) ─────────────────────────
 
-function createEventsHandlers(db: Pool) {
-  const smsService = new SmsNotificationService(db);
+function createEventsHandlers(db: Knex) {
+  const smsService = new SmsNotificationService(db as any);
 
   const listEvents = async (req: Request, res: Response): Promise<void> => {
     const { schoolId } = req.params;
@@ -30,12 +30,12 @@ function createEventsHandlers(db: Pool) {
     const fromDate = (from as string) || new Date().toISOString().slice(0, 10);
 
     try {
-      const result = await db.query<any>(
+      const result = await db.raw<any>(
         `SELECT id, title, description, event_date, event_time, type, sms_sent
          FROM school_events
-         WHERE school_id = $1 AND event_date >= $2
+         WHERE school_id = ? AND event_date >= ?
          ORDER BY event_date ASC
-         LIMIT $3`,
+         LIMIT ?`,
         [schoolId, fromDate, parseInt(limit as string)]
       );
       res.json({ success: true, data: result.rows });
@@ -55,14 +55,15 @@ function createEventsHandlers(db: Pool) {
     }
 
     try {
-      const result = await db.query<{ id: number }>(
+      const result = await db.raw<{ id: number }>(
         `INSERT INTO school_events (school_id, title, description, event_date, event_time, type, created_by, created_at, updated_at)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,NOW(),NOW()) RETURNING id`,
+         VALUES (?,?,?,?,?,?,?,NOW(),NOW()) RETURNING id`,
         [schoolId, title, description ?? null, eventDate, eventTime ?? null,
          type ?? 'other', req.user!.id]
       );
 
-      const eventId = result.rows[0].id;
+      const eventIdResult = result as any;
+      const eventId = Array.isArray(eventIdResult) ? eventIdResult[0]?.id : eventIdResult?.id;
       let reminderScheduled = false;
 
       // If event is 3+ days away and SMS reminder requested, queue it
@@ -72,29 +73,32 @@ function createEventsHandlers(db: Pool) {
         );
         if (daysUntil >= 3) {
           // Fetch all parent phones for the school
-          const phones = await db.query<{ primary_phone: string }>(
+          const phones = await db.raw<Array<{ primary_phone: string }>>(
             `SELECT DISTINCT s.primary_phone FROM students s
-             WHERE s.school_id = $1 AND s.primary_phone IS NOT NULL
+             WHERE s.school_id = ? AND s.primary_phone IS NOT NULL
                AND s.enrollment_status = 'active'`,
             [schoolId]
           );
-          const schoolRes = await db.query<{ name: string }>(
-            `SELECT name FROM schools WHERE id = $1`, [schoolId]
+          const schoolRes = await db.raw<Array<{ name: string }>>(
+            `SELECT name FROM schools WHERE id = ?`, [schoolId]
           );
-          if (phones.rows.length && schoolRes.rows.length) {
+          const phoneRows = Array.isArray(phones) ? phones : (phones as any).rows || [];
+          const schoolRows = Array.isArray(schoolRes) ? schoolRes : (schoolRes as any).rows || [];
+          
+          if (phoneRows.length && schoolRows.length) {
             // Fire reminder 3 days before — for now queue immediately as demo
             // In production this would be a scheduled job
             smsService.sendSchoolEvent({
-              parentPhones: phones.rows.map(r => r.primary_phone),
+              parentPhones: phoneRows.map((r: any) => r.primary_phone),
               eventTitle: title,
               eventDate: new Date(eventDate).toLocaleDateString('en-KE', { day: '2-digit', month: 'short' }),
               eventTime: eventTime ?? 'TBD',
-              schoolName: schoolRes.rows[0].name,
+              schoolName: schoolRows[0].name,
               schoolId: parseInt(schoolId),
               eventId,
             }).then(results => {
-              const sent = results.filter(r => r.success).length;
-              db.query(`UPDATE school_events SET sms_sent = true WHERE id = $1`, [eventId]).catch(() => {});
+              const sent = results.filter((r: any) => r.success).length;
+              db.raw(`UPDATE school_events SET sms_sent = true WHERE id = ?`, [eventId]).catch(() => {});
               logger.info('Event SMS reminders sent', { eventId, sent });
             }).catch(() => {});
             reminderScheduled = true;
@@ -118,20 +122,21 @@ function createEventsHandlers(db: Pool) {
     const { title, description, eventDate, eventTime, type } = req.body;
 
     try {
-      const result = await db.query(
+      const result = await db.raw(
         `UPDATE school_events
-         SET title = COALESCE($1, title),
-             description = COALESCE($2, description),
-             event_date = COALESCE($3, event_date),
-             event_time = COALESCE($4, event_time),
-             type = COALESCE($5, type),
+         SET title = COALESCE(?, title),
+             description = COALESCE(?, description),
+             event_date = COALESCE(?, event_date),
+             event_time = COALESCE(?, event_time),
+             type = COALESCE(?, type),
              updated_at = NOW()
-         WHERE id = $6 AND school_id = $7
+         WHERE id = ? AND school_id = ?
          RETURNING id`,
         [title ?? null, description ?? null, eventDate ?? null,
          eventTime ?? null, type ?? null, eventId, schoolId]
       );
-      if (!result.rows.length) {
+      const resultRows = Array.isArray(result) ? result : (result as any).rows || [];
+      if (!resultRows.length) {
         res.status(404).json({ success: false, message: 'Event not found' });
         return;
       }
@@ -145,11 +150,12 @@ function createEventsHandlers(db: Pool) {
   const deleteEvent = async (req: Request, res: Response): Promise<void> => {
     const { schoolId, eventId } = req.params;
     try {
-      const result = await db.query(
-        `DELETE FROM school_events WHERE id = $1 AND school_id = $2 RETURNING id`,
+      const result = await db.raw(
+        `DELETE FROM school_events WHERE id = ? AND school_id = ? RETURNING id`,
         [eventId, schoolId]
       );
-      if (!result.rows.length) {
+      const resultRows = Array.isArray(result) ? result : (result as any).rows || [];
+      if (!resultRows.length) {
         res.status(404).json({ success: false, message: 'Event not found' });
         return;
       }
@@ -165,10 +171,9 @@ function createEventsHandlers(db: Pool) {
 
 // ─── Offline sync handlers (inline) ──────────────────────────────────────────
 
-function createSyncHandlers(db: Pool, redis: Redis) {
-  // OfflineSyncService takes a Knex instance; wrap pg.Pool with a compatible shim
-  // In production app.ts passes the knex db; here we construct a minimal adapter
-  const syncService = new OfflineSyncService(db as any);
+function createSyncHandlers(db: Knex, redis: Redis) {
+  // OfflineSyncService takes a Knex instance
+  const syncService = new OfflineSyncService(db);
 
   const submitSyncQueue = async (req: Request, res: Response): Promise<void> => {
     const { deviceId, records } = req.body;
@@ -219,7 +224,7 @@ function createSyncHandlers(db: Pool, redis: Redis) {
 
 // ─── Router factory ───────────────────────────────────────────────────────────
 
-export function createEventsAndSyncRouter(db: Pool, redis: Redis): Router {
+export function createEventsAndSyncRouter(db: Knex, redis: Redis): Router {
   const router = Router();
   const events = createEventsHandlers(db);
   const sync   = createSyncHandlers(db, redis);
@@ -228,31 +233,31 @@ export function createEventsAndSyncRouter(db: Pool, redis: Redis): Router {
   router.get(
     '/schools/:schoolId/events',
     authenticate,
-    requireSchool,
+    requireSameSchool,
     events.listEvents
   );
 
   router.post(
     '/schools/:schoolId/events',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
-    requireSchool,
+    requireRole('teacher', 'school_admin', 'super_admin'),
+    requireSameSchool,
     events.createEvent
   );
 
   router.put(
     '/schools/:schoolId/events/:eventId',
     authenticate,
-    requireRole('principal', 'admin', 'super_admin'),
-    requireSchool,
+    requireRole('school_admin', 'super_admin'),
+    requireSameSchool,
     events.updateEvent
   );
 
   router.delete(
     '/schools/:schoolId/events/:eventId',
     authenticate,
-    requireRole('principal', 'admin', 'super_admin'),
-    requireSchool,
+    requireRole('school_admin', 'super_admin'),
+    requireSameSchool,
     events.deleteEvent
   );
 
@@ -272,7 +277,7 @@ export function createEventsAndSyncRouter(db: Pool, redis: Redis): Router {
   router.post(
     '/sync/resolve/:conflictId',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     sync.resolveConflict
   );
 

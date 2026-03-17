@@ -11,13 +11,13 @@
  */
 
 import { Router } from 'express';
-import { Pool } from 'pg';
+import { Knex } from 'knex';
 import { StudentsController } from '../controllers/students.controller';
-import { authenticate, requireRole, requireSchool } from '../middleware/auth';
+import { authenticate, requireRole, requireSameSchool } from '../middleware/auth';
 
-export function createStudentsRouter(db: Pool): Router {
+export function createStudentsRouter(db: Knex): Router {
   const router = Router();
-  const ctrl   = new StudentsController(db);
+  const ctrl   = new StudentsController(db as any);
 
   // ── Student profile ────────────────────────────────────────────────────────
   router.get(
@@ -29,7 +29,7 @@ export function createStudentsRouter(db: Pool): Router {
   router.put(
     '/students/:studentId',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     ctrl.updateStudent
   );
 
@@ -58,15 +58,15 @@ export function createStudentsRouter(db: Pool): Router {
   router.get(
     '/schools/:schoolId/students',
     authenticate,
-    requireSchool,
+    requireSameSchool,
     ctrl.listStudents
   );
 
   router.post(
     '/schools/:schoolId/students',
     authenticate,
-    requireRole('admin', 'principal', 'super_admin'),
-    requireSchool,
+    requireRole('teacher', 'school_admin', 'super_admin'),
+    requireSameSchool,
     ctrl.enrolStudent
   );
 

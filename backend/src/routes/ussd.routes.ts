@@ -17,7 +17,7 @@
 
 import express from 'express';
 import rateLimit from 'express-rate-limit';
-import { Pool } from 'pg';
+import { Knex } from 'knex';
 import Redis from 'ioredis';
 import { UssdController } from '../controllers/ussd.controller';
 import { UssdService } from '../services/ussd.service';
@@ -25,12 +25,12 @@ import { SmsNotificationService } from '../services/sms-notification.service';
 import { authenticate } from '../middleware/auth';
 import { logger } from '../utils/logger';
 
-export function createUssdRouter(db: Pool, redis: Redis) {
+export function createUssdRouter(db: Knex, redis: Redis) {
   const router = express.Router();
 
   // Instantiate services
-  const ussdService = new UssdService(redis, db);
-  const smsService  = new SmsNotificationService(db);
+  const ussdService = new UssdService(redis, db as any);
+  const smsService  = new SmsNotificationService(db as any);
   const controller  = new UssdController(ussdService, smsService);
 
   // ── Rate limiting ─────────────────────────────────────────────────────────
