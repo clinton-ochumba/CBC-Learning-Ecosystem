@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Install dependencies (separate layer for caching)
 COPY package.json package-lock.json* ./
-RUN npm Install
+RUN npm install
 
 # Copy source and compile TypeScript
 COPY tsconfig.json ./
