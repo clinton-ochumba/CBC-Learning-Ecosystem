@@ -80,23 +80,55 @@ app.set('trust proxy', 1);
 
 // ── Health check (no auth required — used by Railway, Render, load balancers) ─
 app.get('/health', async (_req, res) => {
+  // If server is still initializing, return 503 (temporary unavailable)
+  if (!isReady) {
+    return res.status(503).json({
+      status: 'starting',
+      message: 'Server is initializing migrations and routes',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   try {
     const { db } = await import('./config/database');
     const { redis } = await import('./config/redis');
-    await db.raw('SELECT 1');
-    const redisPing = await redis.ping();
+
+    // Set 5 second timeout on health checks to avoid blocking deployments
+    const dbCheck = Promise.race([
+      db.raw('SELECT 1').then(() => 'connected'),
+      new Promise<string>((resolve) => setTimeout(() => resolve('timeout'), 5000)),
+    ]);
+    const redisCheck = Promise.race([
+      redis.ping().then((r: string) => (r === 'PONG' ? 'connected' : 'degraded')),
+      new Promise<string>((resolve) => setTimeout(() => resolve('timeout'), 5000)),
+    ]);
+
+    const [dbStatus, redisStatus] = await Promise.all([dbCheck, redisCheck]);
+
     res.json({
       status: 'ok',
       version: '1.0.0',
-      db: 'connected',
-      redis: redisPing === 'PONG' ? 'connected' : 'degraded',
+      db: dbStatus,
+      redis: redisStatus,
       timestamp: new Date().toISOString(),
       environment: process.env.NODE_ENV,
       mpesa: process.env.MPESA_ENVIRONMENT || 'not configured',
     });
-  } catch {
-    res.status(503).json({ status: 'degraded', timestamp: new Date().toISOString() });
+  } catch (err) {
+    res.status(503).json({
+      status: 'degraded',
+      error: (err as Error).message,
+      timestamp: new Date().toISOString(),
+    });
   }
+});
+
+// ── Readiness check (returns 200 only when fully initialized) ──────────────────
+app.get('/ready', (_req, res) => {
+  if (!isReady) {
+    return res.status(503).json({ status: 'not_ready' });
+  }
+  res.json({ status: 'ready' });
 });
 
 // ── API routes ────────────────────────────────────────────────────────────────
@@ -116,6 +148,7 @@ app.use(errorHandler);
 
 // ── Start server ──────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '5000', 10);
+let isReady = false;
 
 async function start() {
   try {
@@ -131,6 +164,7 @@ async function start() {
     app.use('/api/v1/sync',          createEventsAndSyncRouter(db, redis));
 
     app.listen(PORT, () => {
+      isReady = true;
       logger.info(`[server] ✅ CBC Learning Ecosystem API listening on port ${PORT}`);
       logger.info(`[server]    Environment: ${process.env.NODE_ENV}`);
       logger.info(`[server]    M-Pesa mode: ${process.env.MPESA_ENVIRONMENT || 'not configured'}`);
@@ -143,7 +177,5 @@ async function start() {
     process.exit(1);
   }
 }
-
-start();
 
 start();
