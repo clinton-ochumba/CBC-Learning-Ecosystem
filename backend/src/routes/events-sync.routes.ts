@@ -17,7 +17,7 @@ import Redis from 'ioredis';
 import { SmsNotificationService } from '../services/sms-notification.service';
 import { OfflineSyncService } from '../services/offline-sync.service';
 import { authenticate, requireRole, requireSchool } from '../middleware/auth';
-import { logger } from '../middleware/logger';
+import { logger } from '../utils/logger';
 
 // ─── Events controller (inline — lightweight enough) ─────────────────────────
 

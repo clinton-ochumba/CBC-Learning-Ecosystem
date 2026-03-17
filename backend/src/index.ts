@@ -24,6 +24,11 @@ import { logger }                from './utils/logger';
 // Route modules
 import mpesaRoutes from './routes/mpesa.routes';
 import authRoutes  from './routes/auth.routes';
+import { createStudentsRouter } from './routes/students.routes';
+import { createAssessmentsRouter } from './routes/assessments.routes';
+import { createAttendanceRouter } from './routes/attendance.routes';
+import { createUssdRouter } from './routes/ussd.routes';
+import { createEventsAndSyncRouter } from './routes/events-sync.routes';
 
 // ── Startup validation (exits if secrets invalid) ─────────────────────────────
 validateStartupEnv();
@@ -93,11 +98,8 @@ app.get('/health', async (_req, res) => {
     res.status(503).json({ status: 'degraded', timestamp: new Date().toISOString() });
   }
 });
-
-// ── API routes ────────────────────────────────────────────────────────────────
-app.use('/api/v1/auth',     authRoutes);
-app.use('/api/v1/payments', mpesaRoutes);
-
+Routes that require db/redis will be registered after server starts
+// (they are registered in the start() function below)
 // Add further routes here as the application grows:
 // app.use('/api/v1/schools',  schoolRoutes);
 // app.use('/api/v1/students', studentRoutes);
@@ -115,7 +117,17 @@ app.use(errorHandler);
 // ── Start server ──────────────────────────────────────────────────────────────
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
-async function start() {
+asynconst { db } = await import('./config/database');
+    const { redis } = await import('./config/redis');
+    await checkDatabaseConnection();
+
+    // Register routes that require db/redis
+    app.use('/api/v1/students',      createStudentsRouter(db));
+    app.use('/api/v1/assessments',   createAssessmentsRouter(db));
+    app.use('/api/v1/attendance',    createAttendanceRouter(db));
+    app.use('/api/v1/ussd',          createUssdRouter(db, redis));
+    app.use('/api/v1/sync',          createEventsAndSyncRouter(db, redis));
+
   try {
     await checkDatabaseConnection();
     app.listen(PORT, () => {

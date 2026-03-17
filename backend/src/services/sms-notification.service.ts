@@ -19,7 +19,7 @@
 
 import AfricasTalking from 'africastalking';
 import { Pool } from 'pg';
-import { logger } from '../middleware/logger';
+import { logger } from '../utils/logger';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

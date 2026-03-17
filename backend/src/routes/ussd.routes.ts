@@ -23,7 +23,7 @@ import { UssdController } from '../controllers/ussd.controller';
 import { UssdService } from '../services/ussd.service';
 import { SmsNotificationService } from '../services/sms-notification.service';
 import { authenticate } from '../middleware/auth';
-import { logger } from '../middleware/logger';
+import { logger } from '../utils/logger';
 
 export function createUssdRouter(db: Pool, redis: Redis) {
   const router = express.Router();
