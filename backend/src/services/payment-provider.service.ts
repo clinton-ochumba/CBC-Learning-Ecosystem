@@ -17,6 +17,16 @@ interface PaymentRequest {
   preferred_provider?: 'mpesa' | 'airtel' | 'bank';
 }
 
+interface MpesaConfig {
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  shortcode: string;
+  environment: 'sandbox' | 'production';
+  callbackUrl: string;
+  timeoutUrl: string;
+}
+
 interface PaymentResponse {
   success: boolean;
   transaction_id?: string;
@@ -50,7 +60,18 @@ export class PaymentProviderService {
   constructor() {
     this.logger = new Logger('PaymentProviderService');
     this.alertService = new AlertService();
-    this.mpesaService = new MpesaService();
+    
+    // Initialize M-Pesa with config from environment
+    const mpesaConfig: MpesaConfig = {
+      consumerKey: process.env.MPESA_CONSUMER_KEY || '',
+      consumerSecret: process.env.MPESA_CONSUMER_SECRET || '',
+      passkey: process.env.MPESA_PASSKEY || '',
+      shortcode: process.env.MPESA_SHORTCODE || '',
+      environment: (process.env.MPESA_ENVIRONMENT as 'sandbox' | 'production') || 'sandbox',
+      callbackUrl: process.env.MPESA_CALLBACK_URL || '',
+      timeoutUrl: process.env.MPESA_TIMEOUT_URL || ''
+    };
+    this.mpesaService = new MpesaService(mpesaConfig);
     
     this.redis = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
@@ -105,14 +126,15 @@ export class PaymentProviderService {
         // Provider returned failure
         lastError = new Error(result.error || 'Payment failed');
         await this.recordFailure(provider);
+        fallbackUsed = true;
         
       } catch (error) {
         this.logger.error(`Payment failed with ${provider}`, {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           school_id: request.school_id
         });
         
-        lastError = error;
+        lastError = error instanceof Error ? error : new Error(String(error));
         await this.recordFailure(provider);
         fallbackUsed = true;
       }
@@ -120,10 +142,11 @@ export class PaymentProviderService {
     
     // All providers failed
     await this.alertService.sendAlert({
-      type: 'all_payment_providers_failed',
-      severity: 'critical',
-      message: `All payment providers failed for school ${request.school_id}`,
-      data: { request, lastError: lastError?.message }
+      type: 'system_error',
+      title: 'All Payment Providers Failed',
+      message: `All payment providers failed for school ${request.school_id}. Last error: ${lastError?.message || 'Unknown'}`,
+      metadata: { request, lastError: lastError?.message },
+      schoolId: request.school_id
     });
     
     return {
@@ -171,18 +194,20 @@ export class PaymentProviderService {
    */
   private async processMpesa(request: PaymentRequest): Promise<PaymentResponse> {
     const result = await this.mpesaService.initiateSTKPush({
-      phone_number: request.phone_number,
+      phoneNumber: request.phone_number,
       amount: request.amount,
-      account_reference: request.account_reference,
-      transaction_desc: request.transaction_desc,
-      callback_url: process.env.MPESA_CALLBACK_URL
+      accountReference: request.account_reference,
+      transactionDesc: request.transaction_desc,
+      studentId: 0,
+      schoolId: parseInt(request.school_id),
+      idempotencyKey: `${request.school_id}-${request.parent_id}-${Date.now()}`
     });
     
     return {
-      success: result.success,
-      transaction_id: result.checkout_request_id,
+      success: result.ResponseCode === '0',
+      transaction_id: result.CheckoutRequestID,
       provider: 'mpesa',
-      error: result.error
+      error: result.ResponseCode !== '0' ? result.ResponseDescription : undefined
     };
   }
   
@@ -304,7 +329,7 @@ export class PaymentProviderService {
     const failureCount = await this.redis.hincrby(key, 'failure_count', 1);
     
     // Open circuit if threshold exceeded
-    if (failureCount >= this.FAILURE_THRESHOLD) {
+    if (typeof failureCount === 'number' && failureCount >= this.FAILURE_THRESHOLD) {
       await this.openCircuit(provider);
     }
     
@@ -331,10 +356,10 @@ export class PaymentProviderService {
     
     // Alert operations team
     await this.alertService.sendAlert({
-      type: 'payment_circuit_open',
-      severity: 'high',
+      type: 'system_error',
+      title: 'Payment Circuit Opened',
       message: `Payment circuit opened for ${provider} due to ${this.FAILURE_THRESHOLD} consecutive failures`,
-      data: { provider, threshold: this.FAILURE_THRESHOLD }
+      metadata: { provider, threshold: this.FAILURE_THRESHOLD }
     });
     
     this.logger.error(`Circuit opened for ${provider}`);
@@ -377,10 +402,10 @@ export class PaymentProviderService {
       
       if (allDown) {
         await this.alertService.sendAlert({
-          type: 'all_payment_providers_down',
-          severity: 'critical',
+          type: 'system_error',
+          title: 'All Payment Providers Down',
           message: 'All payment providers are unavailable',
-          data: { statuses }
+          metadata: { statuses }
         });
       }
       
