@@ -20,7 +20,7 @@ export function createAssessmentsRouter(db: Knex): Router {
   router.post(
     '/',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     ctrl.createAssessment
   );
 
@@ -35,7 +35,7 @@ export function createAssessmentsRouter(db: Knex): Router {
   router.post(
     '/:assessmentId/grades',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     ctrl.submitGrades
   );
 
