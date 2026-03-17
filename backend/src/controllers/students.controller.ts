@@ -37,7 +37,7 @@ export class StudentsController {
          FROM students s
          JOIN schools sc ON sc.id = s.school_id
          WHERE s.id = $1`,
-        [studentId]
+        [studentId],
       );
 
       if (!result.rows.length) {
@@ -74,8 +74,8 @@ export class StudentsController {
     try {
       // Summary levels from students table
       const studentRes = await this.db.query<{ competency_levels: string | null; first_name: string; last_name: string; grade_level: string }>(
-        `SELECT competency_levels, first_name, last_name, grade_level FROM students WHERE id = $1`,
-        [studentId]
+        'SELECT competency_levels, first_name, last_name, grade_level FROM students WHERE id = $1',
+        [studentId],
       );
 
       if (!studentRes.rows.length) {
@@ -93,7 +93,7 @@ export class StudentsController {
          JOIN users u ON u.id = ca.assessed_by
          WHERE ca.student_id = $1
          ORDER BY ca.competency_name, ca.assessment_date DESC`,
-        [studentId]
+        [studentId],
       );
 
       const student = studentRes.rows[0];
@@ -178,8 +178,8 @@ export class StudentsController {
       `;
       const params: any[] = [studentId, fromDate, toDate];
 
-      if (status) { query += ` AND status = $4`; params.push(status); }
-      query += ` ORDER BY attendance_date DESC`;
+      if (status) { query += ' AND status = $4'; params.push(status); }
+      query += ' ORDER BY attendance_date DESC';
 
       const result = await this.db.query(query, params);
       const records = result.rows;
@@ -238,15 +238,15 @@ export class StudentsController {
         idx++;
       }
 
-      query += ` ORDER BY s.class_name, s.last_name, s.first_name`;
+      query += ' ORDER BY s.class_name, s.last_name, s.first_name';
       query += ` LIMIT $${idx} OFFSET $${idx + 1}`;
       params.push(parseInt(limit as string), offset);
 
       const [students, countRes] = await Promise.all([
         this.db.query(query, params),
         this.db.query(
-          `SELECT COUNT(*) FROM students WHERE school_id = $1 AND enrollment_status = $2`,
-          [schoolId, status]
+          'SELECT COUNT(*) FROM students WHERE school_id = $1 AND enrollment_status = $2',
+          [schoolId, status],
         ),
       ]);
 
@@ -303,7 +303,7 @@ export class StudentsController {
           enrollmentDate || new Date().toISOString().slice(0, 10),
           primaryPhone || null, secondaryPhone || null, email || null,
           nemisUpi || null, birthCertificateNumber || null, totalFeesRequired || 0,
-        ]
+        ],
       );
 
       logger.info('Student enrolled', { schoolId, admissionNumber, id: result.rows[0].id });
@@ -350,7 +350,7 @@ export class StudentsController {
       const result = await this.db.query(
         `UPDATE students SET ${updates.join(', ')}, updated_at = NOW()
          WHERE id = $${idx} RETURNING id`,
-        values
+        values,
       );
       if (!result.rows.length) {
         res.status(404).json({ success: false, message: 'Student not found' });

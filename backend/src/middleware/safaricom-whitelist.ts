@@ -45,7 +45,7 @@ const SAFARICOM_IP_RANGES: string[] = [
 export function safaricomWhitelist(
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): void {
   // Allow bypass in sandbox / test environments only
   if (process.env.NODE_ENV !== 'production' || process.env.MPESA_ENVIRONMENT === 'sandbox') {

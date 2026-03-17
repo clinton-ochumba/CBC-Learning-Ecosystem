@@ -72,7 +72,7 @@ export const StudentLabPortal: React.FC<StudentLabPortalProps> = ({
   sessionTimeMinutes = 30,
 }) => {
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState(
-    sessionTimeMinutes * 60
+    sessionTimeMinutes * 60,
   );
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [recentGrades, setRecentGrades] = useState<Grade[]>([]);
@@ -92,7 +92,7 @@ export const StudentLabPortal: React.FC<StudentLabPortalProps> = ({
 
   const logSessionEnd = useCallback(() => {
     const durationSeconds = Math.round(
-      (Date.now() - sessionStartRef.current.getTime()) / 1000
+      (Date.now() - sessionStartRef.current.getTime()) / 1000,
     );
     apiPost(`/api/v1/students/${studentId}/sessions/end`, {
       durationSeconds,
@@ -160,7 +160,7 @@ export const StudentLabPortal: React.FC<StudentLabPortalProps> = ({
   const loadAssignments = async () => {
     // FIX BUG-08: Real API call — was hardcoded mock data
     const data = await apiFetch<{ assignments: Assignment[] }>(
-      `/api/v1/students/${studentId}/assignments?status=pending&limit=10`
+      `/api/v1/students/${studentId}/assignments?status=pending&limit=10`,
     );
     setAssignments(data.assignments ?? []);
   };
@@ -168,7 +168,7 @@ export const StudentLabPortal: React.FC<StudentLabPortalProps> = ({
   const loadRecentGrades = async () => {
     // FIX BUG-08: Real API call — was hardcoded mock data
     const data = await apiFetch<{ grades: Grade[] }>(
-      `/api/v1/students/${studentId}/grades?limit=5&orderBy=date_desc`
+      `/api/v1/students/${studentId}/grades?limit=5&orderBy=date_desc`,
     );
     setRecentGrades(data.grades ?? []);
   };
@@ -176,7 +176,7 @@ export const StudentLabPortal: React.FC<StudentLabPortalProps> = ({
   const loadCompetencies = async () => {
     // FIX BUG-08: Real API call — was hardcoded mock data
     const data = await apiFetch<{ competencies: Competency[] }>(
-      `/api/v1/students/${studentId}/competencies`
+      `/api/v1/students/${studentId}/competencies`,
     );
     setCompetencies(data.competencies ?? []);
   };

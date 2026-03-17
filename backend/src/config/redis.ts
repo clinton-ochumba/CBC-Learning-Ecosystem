@@ -14,12 +14,12 @@ function createRedisClient(): Redis {
   const client = url
     ? new Redis(url, { maxRetriesPerRequest: 3, enableReadyCheck: false })
     : new Redis({
-        host:     process.env.REDIS_HOST     || 'localhost',
-        port:     parseInt(process.env.REDIS_PORT || '6379', 10),
-        password: process.env.REDIS_PASSWORD  || undefined,
-        maxRetriesPerRequest: 3,
-        enableReadyCheck: false,
-      });
+      host:     process.env.REDIS_HOST     || 'localhost',
+      port:     parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD  || undefined,
+      maxRetriesPerRequest: 3,
+      enableReadyCheck: false,
+    });
 
   client.on('connect',   () => logger.info('[redis] ✅ Redis connected'));
   client.on('error',     (err) => logger.error('[redis] Redis error', { error: err.message }));

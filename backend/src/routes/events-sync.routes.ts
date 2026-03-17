@@ -36,7 +36,7 @@ function createEventsHandlers(db: Knex) {
          WHERE school_id = ? AND event_date >= ?
          ORDER BY event_date ASC
          LIMIT ?`,
-        [schoolId, fromDate, parseInt(limit as string)]
+        [schoolId, fromDate, parseInt(limit as string)],
       );
       res.json({ success: true, data: result.rows });
     } catch (err: any) {
@@ -59,7 +59,7 @@ function createEventsHandlers(db: Knex) {
         `INSERT INTO school_events (school_id, title, description, event_date, event_time, type, created_by, created_at, updated_at)
          VALUES (?,?,?,?,?,?,?,NOW(),NOW()) RETURNING id`,
         [schoolId, title, description ?? null, eventDate, eventTime ?? null,
-         type ?? 'other', req.user!.id]
+          type ?? 'other', req.user!.id],
       );
 
       const eventIdResult = result as any;
@@ -69,7 +69,7 @@ function createEventsHandlers(db: Knex) {
       // If event is 3+ days away and SMS reminder requested, queue it
       if (scheduleSmsReminder) {
         const daysUntil = Math.floor(
-          (new Date(eventDate).getTime() - Date.now()) / 86400000
+          (new Date(eventDate).getTime() - Date.now()) / 86400000,
         );
         if (daysUntil >= 3) {
           // Fetch all parent phones for the school
@@ -77,14 +77,14 @@ function createEventsHandlers(db: Knex) {
             `SELECT DISTINCT s.primary_phone FROM students s
              WHERE s.school_id = ? AND s.primary_phone IS NOT NULL
                AND s.enrollment_status = 'active'`,
-            [schoolId]
+            [schoolId],
           );
           const schoolRes = await db.raw<Array<{ name: string }>>(
-            `SELECT name FROM schools WHERE id = ?`, [schoolId]
+            'SELECT name FROM schools WHERE id = ?', [schoolId],
           );
           const phoneRows = Array.isArray(phones) ? phones : (phones as any).rows || [];
           const schoolRows = Array.isArray(schoolRes) ? schoolRes : (schoolRes as any).rows || [];
-          
+
           if (phoneRows.length && schoolRows.length) {
             // Fire reminder 3 days before — for now queue immediately as demo
             // In production this would be a scheduled job
@@ -98,7 +98,7 @@ function createEventsHandlers(db: Knex) {
               eventId,
             }).then(results => {
               const sent = results.filter((r: any) => r.success).length;
-              db.raw(`UPDATE school_events SET sms_sent = true WHERE id = ?`, [eventId]).catch(() => {});
+              db.raw('UPDATE school_events SET sms_sent = true WHERE id = ?', [eventId]).catch(() => {});
               logger.info('Event SMS reminders sent', { eventId, sent });
             }).catch(() => {});
             reminderScheduled = true;
@@ -133,7 +133,7 @@ function createEventsHandlers(db: Knex) {
          WHERE id = ? AND school_id = ?
          RETURNING id`,
         [title ?? null, description ?? null, eventDate ?? null,
-         eventTime ?? null, type ?? null, eventId, schoolId]
+          eventTime ?? null, type ?? null, eventId, schoolId],
       );
       const resultRows = Array.isArray(result) ? result : (result as any).rows || [];
       if (!resultRows.length) {
@@ -151,8 +151,8 @@ function createEventsHandlers(db: Knex) {
     const { schoolId, eventId } = req.params;
     try {
       const result = await db.raw(
-        `DELETE FROM school_events WHERE id = ? AND school_id = ? RETURNING id`,
-        [eventId, schoolId]
+        'DELETE FROM school_events WHERE id = ? AND school_id = ? RETURNING id',
+        [eventId, schoolId],
       );
       const resultRows = Array.isArray(result) ? result : (result as any).rows || [];
       if (!resultRows.length) {
@@ -234,7 +234,7 @@ export function createEventsAndSyncRouter(db: Knex, redis: Redis): Router {
     '/schools/:schoolId/events',
     authenticate,
     requireSameSchool,
-    events.listEvents
+    events.listEvents,
   );
 
   router.post(
@@ -242,7 +242,7 @@ export function createEventsAndSyncRouter(db: Knex, redis: Redis): Router {
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
     requireSameSchool,
-    events.createEvent
+    events.createEvent,
   );
 
   router.put(
@@ -250,7 +250,7 @@ export function createEventsAndSyncRouter(db: Knex, redis: Redis): Router {
     authenticate,
     requireRole('school_admin', 'super_admin'),
     requireSameSchool,
-    events.updateEvent
+    events.updateEvent,
   );
 
   router.delete(
@@ -258,27 +258,27 @@ export function createEventsAndSyncRouter(db: Knex, redis: Redis): Router {
     authenticate,
     requireRole('school_admin', 'super_admin'),
     requireSameSchool,
-    events.deleteEvent
+    events.deleteEvent,
   );
 
   // ── Offline sync ───────────────────────────────────────────────────────────
   router.post(
     '/sync/queue',
     authenticate,
-    sync.submitSyncQueue
+    sync.submitSyncQueue,
   );
 
   router.get(
     '/sync/conflicts',
     authenticate,
-    sync.listConflicts
+    sync.listConflicts,
   );
 
   router.post(
     '/sync/resolve/:conflictId',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    sync.resolveConflict
+    sync.resolveConflict,
   );
 
   return router;

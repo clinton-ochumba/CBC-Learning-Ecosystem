@@ -23,35 +23,35 @@ export function createStudentsRouter(db: Knex): Router {
   router.get(
     '/students/:studentId',
     authenticate,
-    ctrl.getStudent
+    ctrl.getStudent,
   );
 
   router.put(
     '/students/:studentId',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    ctrl.updateStudent
+    ctrl.updateStudent,
   );
 
   // ── CBC competencies ───────────────────────────────────────────────────────
   router.get(
     '/students/:studentId/competencies',
     authenticate,
-    ctrl.getCompetencies
+    ctrl.getCompetencies,
   );
 
   // ── Grades ─────────────────────────────────────────────────────────────────
   router.get(
     '/students/:studentId/grades',
     authenticate,
-    ctrl.getGrades
+    ctrl.getGrades,
   );
 
   // ── Attendance per student ─────────────────────────────────────────────────
   router.get(
     '/students/:studentId/attendance',
     authenticate,
-    ctrl.getAttendance
+    ctrl.getAttendance,
   );
 
   // ── School-scoped student management ──────────────────────────────────────
@@ -59,7 +59,7 @@ export function createStudentsRouter(db: Knex): Router {
     '/schools/:schoolId/students',
     authenticate,
     requireSameSchool,
-    ctrl.listStudents
+    ctrl.listStudents,
   );
 
   router.post(
@@ -67,7 +67,7 @@ export function createStudentsRouter(db: Knex): Router {
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
     requireSameSchool,
-    ctrl.enrolStudent
+    ctrl.enrolStudent,
   );
 
   return router;

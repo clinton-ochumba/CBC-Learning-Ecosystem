@@ -15,7 +15,7 @@ import { Knex } from 'knex';
 async function safeIndex(
   knex: Knex,
   table: string,
-  fn: (t: Knex.AlterTableBuilder) => void
+  fn: (t: Knex.AlterTableBuilder) => void,
 ): Promise<void> {
   if (!(await knex.schema.hasTable(table))) {
     console.log(`  ⚠  Skipping '${table}' indexes (table not found)`);
@@ -38,8 +38,8 @@ export async function up(knex: Knex): Promise<void> {
     t.index(['school_id', 'grade_level'], 'idx_students_school_grade');
   });
 
-  await safeRaw(knex, `CREATE INDEX IF NOT EXISTS idx_students_first_name_trgm ON students USING gin(first_name gin_trgm_ops)`);
-  await safeRaw(knex, `CREATE INDEX IF NOT EXISTS idx_students_last_name_trgm  ON students USING gin(last_name  gin_trgm_ops)`);
+  await safeRaw(knex, 'CREATE INDEX IF NOT EXISTS idx_students_first_name_trgm ON students USING gin(first_name gin_trgm_ops)');
+  await safeRaw(knex, 'CREATE INDEX IF NOT EXISTS idx_students_last_name_trgm  ON students USING gin(last_name  gin_trgm_ops)');
 
   await safeIndex(knex, 'assessments', (t) => {
     t.index(['student_id'],                              'idx_assessments_student_id');
@@ -52,8 +52,8 @@ export async function up(knex: Knex): Promise<void> {
     t.index(['school_id', 'competency_id', 'created_at'],'idx_assessments_school_comp_date');
   });
 
-  await safeRaw(knex, `CREATE INDEX IF NOT EXISTS idx_assessments_dashboard ON assessments(student_id, created_at DESC, competency_id) WHERE deleted_at IS NULL`);
-  await safeRaw(knex, `CREATE INDEX IF NOT EXISTS idx_assessments_progress  ON assessments(student_id, term, year, competency_id, score) WHERE deleted_at IS NULL`);
+  await safeRaw(knex, 'CREATE INDEX IF NOT EXISTS idx_assessments_dashboard ON assessments(student_id, created_at DESC, competency_id) WHERE deleted_at IS NULL');
+  await safeRaw(knex, 'CREATE INDEX IF NOT EXISTS idx_assessments_progress  ON assessments(student_id, term, year, competency_id, score) WHERE deleted_at IS NULL');
 
   await safeIndex(knex, 'fee_payments', (t) => {
     t.index(['school_id'],               'idx_fee_payments_school_id');
@@ -63,7 +63,7 @@ export async function up(knex: Knex): Promise<void> {
     t.index(['parent_id', 'created_at'], 'idx_fee_payments_parent_date');
     t.index(['status', 'created_at'],    'idx_fee_payments_status_date');
   });
-  await safeRaw(knex, `CREATE INDEX IF NOT EXISTS idx_fee_payments_reconciliation ON fee_payments(school_id, created_at, status, amount) WHERE status IN ('completed','pending')`);
+  await safeRaw(knex, 'CREATE INDEX IF NOT EXISTS idx_fee_payments_reconciliation ON fee_payments(school_id, created_at, status, amount) WHERE status IN (\'completed\',\'pending\')');
 
   await safeIndex(knex, 'mpesa_transactions', (t) => {
     t.index(['school_id'],           'idx_mpesa_school_id');

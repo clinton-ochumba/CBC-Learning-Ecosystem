@@ -20,13 +20,13 @@ import LoginPage from './components/LoginPage';
 
 // ── Lazy imports (code-split per role — smaller initial bundle) ────────────────
 const TeacherClassroomPortal = React.lazy(
-  () => import('./components/TeacherClassroomPortal')
+  () => import('./components/TeacherClassroomPortal'),
 );
 const StudentLabPortal = React.lazy(
-  () => import('./components/StudentLabPortal')
+  () => import('./components/StudentLabPortal'),
 );
 const MpesaPayment = React.lazy(
-  () => import('./components/MpesaPayment')
+  () => import('./components/MpesaPayment'),
 );
 
 // ── Loading spinner ────────────────────────────────────────────────────────────
@@ -85,12 +85,12 @@ function HomeRedirect() {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
 
   switch (user?.role) {
-    case 'super_admin':
-    case 'school_admin': return <Navigate to="/admin"   replace />;
-    case 'teacher':      return <Navigate to="/teacher" replace />;
-    case 'parent':       return <Navigate to="/parent"  replace />;
-    case 'student':      return <Navigate to="/student" replace />;
-    default:             return <Navigate to="/login"   replace />;
+  case 'super_admin':
+  case 'school_admin': return <Navigate to="/admin"   replace />;
+  case 'teacher':      return <Navigate to="/teacher" replace />;
+  case 'parent':       return <Navigate to="/parent"  replace />;
+  case 'student':      return <Navigate to="/student" replace />;
+  default:             return <Navigate to="/login"   replace />;
   }
 }
 
@@ -137,10 +137,17 @@ function ParentPortal() {
       <p style={{ color: '#64748B', marginBottom: 24 }}>Welcome, {user?.firstName}.</p>
       <React.Suspense fallback={<Spinner />}>
         <MpesaPayment
-          studentId={90100}
-          studentName="Brian Mwangi"
-          onPaymentComplete={(result) => console.log('Payment result:', result)}
-          onSuccess={() => console.log('Payment succeeded')}
+          student={{
+            id: 90100,
+            firstName: 'Brian',
+            lastName: 'Mwangi',
+            admissionNumber: 'ADM-90100',
+            gradeLevel: 'Grade 7',
+            feeBalance: 15000,
+            school: { name: 'Demo School', code: 'DEM-001' },
+          }}
+          onPaymentComplete={(receipt, amount) => console.log('Payment result:', receipt, amount)}
+          onSuccess={(receipt, amount) => console.log('Payment succeeded:', receipt, amount)}
           onError={(err) => console.error('Payment error:', err)}
         />
       </React.Suspense>

@@ -37,7 +37,7 @@ export class AttendanceController {
       if (!r.studentId || !valid.includes(r.status)) {
         res.status(400).json({
           success: false,
-          message: `Invalid record: studentId and status (present|absent|late) required`,
+          message: 'Invalid record: studentId and status (present|absent|late) required',
         });
         return;
       }
@@ -58,7 +58,7 @@ export class AttendanceController {
            ON CONFLICT (student_id, attendance_date)
            DO UPDATE SET status = EXCLUDED.status, reason = EXCLUDED.reason,
                          marked_by = EXCLUDED.marked_by, updated_at = NOW()`,
-          [record.studentId, classId, effectiveSchoolId, date, record.status, record.reason ?? null, teacher.id]
+          [record.studentId, classId, effectiveSchoolId, date, record.status, record.reason ?? null, teacher.id],
         );
         savedCount++;
       }
@@ -105,7 +105,7 @@ export class AttendanceController {
            AND a.school_id = $2
            AND a.attendance_date = $3
          ORDER BY s.last_name, s.first_name`,
-        [classId, effectiveSchoolId, date]
+        [classId, effectiveSchoolId, date],
       );
 
       const rows = result.rows;
@@ -143,7 +143,7 @@ export class AttendanceController {
       const result = await this.db.query(
         `UPDATE attendance SET status = $1, reason = $2, updated_at = NOW()
          WHERE id = $3 RETURNING id`,
-        [status, reason ?? null, recordId]
+        [status, reason ?? null, recordId],
       );
       if (!result.rows.length) {
         res.status(404).json({ success: false, message: 'Attendance record not found' });
@@ -161,7 +161,7 @@ export class AttendanceController {
   private async dispatchAbsenceAlerts(
     absentRecords: { studentId: number; status: string }[],
     date: string,
-    schoolId: number
+    schoolId: number,
   ): Promise<number> {
     let sent = 0;
     for (const r of absentRecords) {
@@ -170,7 +170,7 @@ export class AttendanceController {
           `SELECT s.first_name, s.last_name, s.primary_phone, sc.name AS school_name
            FROM students s JOIN schools sc ON sc.id = s.school_id
            WHERE s.id = $1`,
-          [r.studentId]
+          [r.studentId],
         );
         if (!studentRes.rows.length || !studentRes.rows[0].primary_phone) continue;
 

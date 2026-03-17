@@ -320,7 +320,7 @@ export class MpesaController {
           summary: {
             totalPaid: payments.reduce(
               (sum: number, p: any) => sum + parseFloat(p.amount),
-              0
+              0,
             ),
             outstandingBalance: Math.max(0, student?.fee_balance || 0),
           },

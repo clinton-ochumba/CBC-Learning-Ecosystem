@@ -101,7 +101,7 @@ export const ConflictResolutionQueue: React.FC<ConflictResolutionQueueProps> = (
       setLoading(true);
       setError(null);
       const data = await apiFetch<{ conflicts: SyncConflict[] }>(
-        '/api/v1/sync/conflicts?status=unresolved&limit=50'
+        '/api/v1/sync/conflicts?status=unresolved&limit=50',
       );
       setConflicts(data.conflicts ?? []);
     } catch (err: any) {
@@ -117,7 +117,7 @@ export const ConflictResolutionQueue: React.FC<ConflictResolutionQueueProps> = (
 
   const resolveConflict = async (
     conflict: SyncConflict,
-    winner: ResolutionWinner
+    winner: ResolutionWinner,
   ) => {
     setResolving((prev) => new Set(prev).add(conflict.id));
 

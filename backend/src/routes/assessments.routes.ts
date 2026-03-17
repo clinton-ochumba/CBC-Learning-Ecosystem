@@ -21,14 +21,14 @@ export function createAssessmentsRouter(db: Knex): Router {
     '/',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    ctrl.createAssessment
+    ctrl.createAssessment,
   );
 
   // Get single assessment with class stats
   router.get(
     '/:assessmentId',
     authenticate,
-    ctrl.getAssessment
+    ctrl.getAssessment,
   );
 
   // Bulk grade submission — teachers only
@@ -36,7 +36,7 @@ export function createAssessmentsRouter(db: Knex): Router {
     '/:assessmentId/grades',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    ctrl.submitGrades
+    ctrl.submitGrades,
   );
 
   // List assessments for a school
@@ -44,7 +44,7 @@ export function createAssessmentsRouter(db: Knex): Router {
     '/schools/:schoolId',
     authenticate,
     requireSameSchool,
-    ctrl.listAssessments
+    ctrl.listAssessments,
   );
 
   return router;

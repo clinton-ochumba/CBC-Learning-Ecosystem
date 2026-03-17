@@ -28,12 +28,12 @@ export function validateStartupEnv(): void {
   const result = runValidations();
 
   result.warnings.forEach((w) =>
-    logger.warn(`[startup] ⚠️  ${w}`)
+    logger.warn(`[startup] ⚠️  ${w}`),
   );
 
   if (!result.passed) {
     result.errors.forEach((e) =>
-      logger.error(`[startup] ❌ FATAL: ${e}`)
+      logger.error(`[startup] ❌ FATAL: ${e}`),
     );
     logger.error('[startup] Server startup aborted — fix the above errors and restart.');
     process.exit(1);
@@ -54,7 +54,7 @@ function runValidations(): ValidationResult {
     errors.push('JWT_SECRET is not set');
   } else if (jwtSecret.length < 64) {
     errors.push(
-      `JWT_SECRET is too short (${jwtSecret.length} chars). Minimum 64 characters required.`
+      `JWT_SECRET is too short (${jwtSecret.length} chars). Minimum 64 characters required.`,
     );
   } else if (KNOWN_PLACEHOLDER_SECRETS.has(jwtSecret.toLowerCase())) {
     errors.push('JWT_SECRET is using a placeholder/default value. Set a secure random secret.');
@@ -64,7 +64,7 @@ function runValidations(): ValidationResult {
     errors.push('JWT_REFRESH_SECRET is not set');
   } else if (jwtRefresh.length < 64) {
     errors.push(
-      `JWT_REFRESH_SECRET is too short (${jwtRefresh.length} chars). Minimum 64 required.`
+      `JWT_REFRESH_SECRET is too short (${jwtRefresh.length} chars). Minimum 64 required.`,
     );
   } else if (KNOWN_PLACEHOLDER_SECRETS.has(jwtRefresh.toLowerCase())) {
     errors.push('JWT_REFRESH_SECRET is using a placeholder value.');
@@ -96,7 +96,7 @@ function runValidations(): ValidationResult {
   // ── Africa's Talking SMS ───────────────────────────────────
   if (!process.env.AT_API_KEY || !process.env.AT_USERNAME) {
     warnings.push(
-      'AT_API_KEY / AT_USERNAME not set — SMS payment notifications will be disabled'
+      'AT_API_KEY / AT_USERNAME not set — SMS payment notifications will be disabled',
     );
   }
 

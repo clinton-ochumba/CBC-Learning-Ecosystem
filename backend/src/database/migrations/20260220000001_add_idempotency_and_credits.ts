@@ -14,7 +14,7 @@ export async function up(knex: Knex): Promise<void> {
   // ── GAP-03: Idempotency key on STK Push transactions ──────────────────────
   const hasIdempotencyKey = await knex.schema.hasColumn(
     'mpesa_transactions',
-    'idempotency_key'
+    'idempotency_key',
   );
 
   if (!hasIdempotencyKey) {
@@ -24,7 +24,7 @@ export async function up(knex: Knex): Promise<void> {
         .nullable()
         .comment(
           'Client-generated key to prevent duplicate payment initiation. ' +
-          'Format: {studentId}-{amount}-{minuteSlot}'
+          'Format: {studentId}-{amount}-{minuteSlot}',
         );
 
       table.index('idempotency_key');
@@ -100,7 +100,7 @@ export async function down(knex: Knex): Promise<void> {
 
   const hasIdempotencyKey = await knex.schema.hasColumn(
     'mpesa_transactions',
-    'idempotency_key'
+    'idempotency_key',
   );
   if (hasIdempotencyKey) {
     await knex.schema.alterTable('mpesa_transactions', (table) => {

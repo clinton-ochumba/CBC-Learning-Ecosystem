@@ -35,7 +35,7 @@ function signAccessToken(user: AuthUser): string {
       lastName: user.lastName,
     },
     secret,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any,
   );
 }
 

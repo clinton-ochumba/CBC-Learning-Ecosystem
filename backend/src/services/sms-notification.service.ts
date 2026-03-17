@@ -267,7 +267,7 @@ export class SmsNotificationService {
         `SELECT status, at_message_id FROM sms_queue
          WHERE reference_id = $1 AND status = 'sent'
          LIMIT 1`,
-        [params.referenceId]
+        [params.referenceId],
       );
       if (existing.rows.length > 0) {
         return { success: true, messageId: existing.rows[0].at_message_id };
@@ -309,7 +309,7 @@ export class SmsNotificationService {
     phone: string,
     message: string,
     eventType: SmsEventType,
-    attempt = 0
+    attempt = 0,
   ): Promise<SmsResult> {
     if (!this.isEnabled || !this.smsClient) {
       // Log only, don't fail in test/dev environments
@@ -371,7 +371,7 @@ export class SmsNotificationService {
         `SELECT COALESCE(sms_sent_this_term, 0) AS sms_sent_this_term,
                 COALESCE(sms_quota, 500) AS sms_quota
          FROM sms_usage WHERE school_id = $1`,
-        [schoolId]
+        [schoolId],
       );
       if (!result.rows.length) return true;
       const { sms_sent_this_term, sms_quota } = result.rows[0];
@@ -387,7 +387,7 @@ export class SmsNotificationService {
          ON CONFLICT (school_id) DO UPDATE
          SET sms_sent_this_term = sms_usage.sms_sent_this_term + 1,
              updated_at = NOW()`,
-        [schoolId]
+        [schoolId],
       );
     } catch { /* non-fatal */ }
   }
@@ -407,7 +407,7 @@ export class SmsNotificationService {
          ON CONFLICT (reference_id) DO UPDATE
            SET status = EXCLUDED.status, attempt_count = sms_queue.attempt_count + 1, updated_at = NOW()
          RETURNING id`,
-        [params.to, params.message, params.eventType, params.schoolId, params.referenceId, params.status]
+        [params.to, params.message, params.eventType, params.schoolId, params.referenceId, params.status],
       );
       return r.rows[0]?.id ?? 0;
     } catch { return 0; }
@@ -426,7 +426,7 @@ export class SmsNotificationService {
           result.cost ?? null,
           result.failureReason ?? null,
           queueId,
-        ]
+        ],
       );
     } catch { /* non-fatal */ }
   }

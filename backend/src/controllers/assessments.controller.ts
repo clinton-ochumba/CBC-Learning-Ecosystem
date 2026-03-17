@@ -55,7 +55,7 @@ export class AssessmentsController {
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'upcoming',$9,NOW(),NOW())
          RETURNING id`,
         [title, classId, effectiveSchoolId, subject ?? null, maxScore,
-         assessmentDate, cbcStrand ?? null, term ?? null, teacher.id]
+          assessmentDate, cbcStrand ?? null, term ?? null, teacher.id],
       );
 
       logger.info('Assessment created', { id: result.rows[0].id, classId, title });
@@ -81,7 +81,7 @@ export class AssessmentsController {
            FROM assessments a
            LEFT JOIN users u ON u.id = a.created_by
            WHERE a.id = $1`,
-          [assessmentId]
+          [assessmentId],
         ),
         this.db.query<any>(
           `SELECT g.student_id, g.score, g.notes,
@@ -92,7 +92,7 @@ export class AssessmentsController {
            JOIN assessments a ON a.id = g.assessment_id
            WHERE g.assessment_id = $1
            ORDER BY g.score DESC`,
-          [assessmentId]
+          [assessmentId],
         ),
       ]);
 
@@ -146,8 +146,8 @@ export class AssessmentsController {
     try {
       // Verify assessment exists and get maxScore
       const asmRes = await this.db.query<{ id: number; max_score: number; subject: string; school_id: number; title: string }>(
-        `SELECT id, max_score, subject, school_id, title FROM assessments WHERE id = $1`,
-        [assessmentId]
+        'SELECT id, max_score, subject, school_id, title FROM assessments WHERE id = $1',
+        [assessmentId],
       );
       if (!asmRes.rows.length) {
         res.status(404).json({ success: false, message: 'Assessment not found' });
@@ -181,7 +181,7 @@ export class AssessmentsController {
            ON CONFLICT (assessment_id, student_id)
            DO UPDATE SET score = EXCLUDED.score, cbc_level = EXCLUDED.cbc_level,
                          notes = EXCLUDED.notes, updated_at = NOW()`,
-          [assessmentId, g.studentId, g.score, level, g.notes ?? null]
+          [assessmentId, g.studentId, g.score, level, g.notes ?? null],
         );
 
         // Update student's competency_levels summary (JSONB merge)
@@ -198,7 +198,7 @@ export class AssessmentsController {
                ),
                updated_at = NOW()
              WHERE id = $3`,
-            [assessment.subject, level, g.studentId]
+            [assessment.subject, level, g.studentId],
           );
         }
 
@@ -207,8 +207,8 @@ export class AssessmentsController {
 
       // Mark assessment as graded
       await this.db.query(
-        `UPDATE assessments SET status = 'graded', updated_at = NOW() WHERE id = $1`,
-        [assessmentId]
+        'UPDATE assessments SET status = \'graded\', updated_at = NOW() WHERE id = $1',
+        [assessmentId],
       );
 
       await this.db.query('COMMIT');
@@ -277,7 +277,7 @@ export class AssessmentsController {
 
   private async dispatchGradeNotifications(
     grades: { studentId: number; score: number }[],
-    assessment: { max_score: number; subject: string; school_id: number; title: string }
+    assessment: { max_score: number; subject: string; school_id: number; title: string },
   ): Promise<number> {
     let sent = 0;
     for (const g of grades) {
@@ -286,7 +286,7 @@ export class AssessmentsController {
           `SELECT s.first_name, s.last_name, s.primary_phone, sc.name AS school_name
            FROM students s JOIN schools sc ON sc.id = s.school_id
            WHERE s.id = $1`,
-          [g.studentId]
+          [g.studentId],
         );
         if (!studentRes.rows.length || !studentRes.rows[0].primary_phone) continue;
 

@@ -107,7 +107,7 @@ export default function LoginPage() {
                   key={role}
                   onClick={() => fillDemo(demoEmail)}
                   title={hint}
-                  style={{ padding: '8px 10px', background: LGREY, border: `1.5px solid #E2E8F0`, borderRadius: 6, fontSize: 12, fontWeight: 700, color: NAVY, cursor: 'pointer', textAlign: 'left' }}
+                  style={{ padding: '8px 10px', background: LGREY, border: '1.5px solid #E2E8F0', borderRadius: 6, fontSize: 12, fontWeight: 700, color: NAVY, cursor: 'pointer', textAlign: 'left' }}
                 >
                   {role}
                   <span style={{ display: 'block', fontWeight: 400, color: '#64748B', fontSize: 10, marginTop: 2 }}>{hint}</span>

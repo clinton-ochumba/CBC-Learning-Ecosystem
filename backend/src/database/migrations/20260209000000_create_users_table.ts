@@ -29,9 +29,9 @@ export async function up(knex: Knex): Promise<void> {
 
     // Role & school
     t.enum('role', ['parent', 'teacher', 'principal', 'admin', 'super_admin'])
-     .notNullable().defaultTo('parent');
+      .notNullable().defaultTo('parent');
     t.integer('school_id').nullable()
-     .references('id').inTable('schools').onDelete('SET NULL');
+      .references('id').inTable('schools').onDelete('SET NULL');
 
     // Profile
     t.string('preferred_language', 10).defaultTo('en');
@@ -39,7 +39,7 @@ export async function up(knex: Knex): Promise<void> {
 
     // Account state
     t.enum('status', ['active', 'suspended', 'pending_verification', 'deactivated'])
-     .defaultTo('pending_verification');
+      .defaultTo('pending_verification');
     t.boolean('email_verified').defaultTo(false);
     t.boolean('phone_verified').defaultTo(false);
 
@@ -62,7 +62,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('refresh_tokens', (t) => {
     t.increments('id').primary();
     t.integer('user_id').notNullable()
-     .references('id').inTable('users').onDelete('CASCADE');
+      .references('id').inTable('users').onDelete('CASCADE');
     t.string('token_hash', 255).notNullable().unique();
     t.string('device_info', 500).nullable();
     t.string('ip_address', 45).nullable();
@@ -79,7 +79,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('password_resets', (t) => {
     t.increments('id').primary();
     t.integer('user_id').notNullable()
-     .references('id').inTable('users').onDelete('CASCADE');
+      .references('id').inTable('users').onDelete('CASCADE');
     t.string('token_hash', 255).notNullable().unique();
     t.enum('channel', ['email', 'sms']).defaultTo('sms');
     t.boolean('used').defaultTo(false);
@@ -92,7 +92,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('auth_audit_log', (t) => {
     t.increments('id').primary();
     t.integer('user_id').nullable()
-     .references('id').inTable('users').onDelete('SET NULL');
+      .references('id').inTable('users').onDelete('SET NULL');
     t.enum('event', [
       'login_success', 'login_failed', 'logout', 'token_refreshed',
       'password_reset_requested', 'password_reset_completed',

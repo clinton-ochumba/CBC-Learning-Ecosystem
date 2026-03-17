@@ -54,7 +54,7 @@ router.post(
     body('description').optional().isString(),
   ],
   validate,
-  MpesaController.initiatePayment
+  MpesaController.initiatePayment,
 );
 
 /**
@@ -65,7 +65,7 @@ router.post(
 router.post(
   '/callback',
   safaricomWhitelist, // FIX SEC-02
-  MpesaController.handleCallback
+  MpesaController.handleCallback,
 );
 
 /**
@@ -76,7 +76,7 @@ router.post(
 router.post(
   '/timeout',
   safaricomWhitelist, // FIX SEC-02
-  MpesaController.handleTimeout
+  MpesaController.handleTimeout,
 );
 
 /**
@@ -87,7 +87,7 @@ router.post(
 router.post(
   '/c2b/validation',
   safaricomWhitelist, // FIX SEC-02
-  MpesaController.validateC2B
+  MpesaController.validateC2B,
 );
 
 /**
@@ -98,7 +98,7 @@ router.post(
 router.post(
   '/c2b/confirmation',
   safaricomWhitelist, // FIX SEC-02
-  MpesaController.confirmC2B
+  MpesaController.confirmC2B,
 );
 
 /**
@@ -114,7 +114,7 @@ router.get(
       .withMessage('Valid checkout request ID is required'),
   ],
   validate,
-  MpesaController.queryStatus
+  MpesaController.queryStatus,
 );
 
 /**
@@ -132,7 +132,7 @@ router.get(
     query('to').optional().isISO8601(),
   ],
   validate,
-  MpesaController.getPaymentHistory
+  MpesaController.getPaymentHistory,
 );
 
 /**
@@ -153,7 +153,7 @@ router.post(
     body('notes').optional().isString(),
   ],
   validate,
-  MpesaController.recordManualPayment
+  MpesaController.recordManualPayment,
 );
 
 export default router;

@@ -59,12 +59,12 @@ interface ChildSummary {
 const T = {
   en: {
     welcome:        (name: string) => `CON CBC School Portal\nWelcome, ${name}\n\n1. Child Progress\n2. Attendance\n3. Fee Balance\n4. School Events\n5. Message Teacher\n6. Switch to Swahili\n0. Exit`,
-    welcomeNoAuth:  `END Sorry, your number is not registered.\nContact your school to register.\nHelp: 0800 724 100`,
+    welcomeNoAuth:  'END Sorry, your number is not registered.\nContact your school to register.\nHelp: 0800 724 100',
     selectChild:    (children: ChildSummary[]) =>
-      `CON Select child:\n` +
+      'CON Select child:\n' +
       children.map((c, i) => `${i + 1}. ${c.firstName} ${c.lastName} (${c.gradeLevel})`).join('\n') +
       '\n0. Back',
-    noChildren:     `END No children found for this number.\nContact school to update records.`,
+    noChildren:     'END No children found for this number.\nContact school to update records.',
     progress:       (c: ChildSummary) => {
       const levels = c.competencyLevels || {};
       const summary = Object.entries(levels)
@@ -87,29 +87,29 @@ const T = {
       `END ${c.firstName} ${c.lastName}\nFee Balance: Ksh ${c.feeBalance.toLocaleString()}\nTotal Fees: Ksh ${c.totalFeesRequired.toLocaleString()}\n` +
       (c.feeBalance > 0
         ? `Pay via M-Pesa:\nPaybill: ${c.schoolShortcode}\nAcc: ${c.id}\nAmt: Ksh ${c.feeBalance.toLocaleString()}`
-        : `✓ Fees fully paid.`),
+        : '✓ Fees fully paid.'),
     events:         (events: EventRow[]) =>
       events.length
-        ? `END Upcoming Events:\n` + events.slice(0, 4).map(e => `• ${e.title}: ${formatDate(e.date)}`).join('\n')
-        : `END No upcoming events.\nCheck app for updates.`,
+        ? 'END Upcoming Events:\n' + events.slice(0, 4).map(e => `• ${e.title}: ${formatDate(e.date)}`).join('\n')
+        : 'END No upcoming events.\nCheck app for updates.',
     messageTeacher: (c: ChildSummary) =>
       `CON Message teacher for ${c.firstName}?\nType your message (max 120 chars).\nOr press 0 to go back.`,
     messageSent:    (teacher: string) =>
       `END Message sent to ${teacher}.\nThey will respond within 24 hours.`,
-    messageFailed:  `END Failed to send message.\nTry again or call school.`,
-    invalidInput:   `END Invalid input.\nPlease dial again.`,
-    sessionTimeout: `END Session timed out.\nPlease dial again.`,
-    goodbye:        `END Thank you for using CBC Portal.\nKaa salama!`,
-    swahiliSwitch:  `END Imebadilishwa kwenye Kiswahili.\nPiga simu tena: *384*1234#`,
+    messageFailed:  'END Failed to send message.\nTry again or call school.',
+    invalidInput:   'END Invalid input.\nPlease dial again.',
+    sessionTimeout: 'END Session timed out.\nPlease dial again.',
+    goodbye:        'END Thank you for using CBC Portal.\nKaa salama!',
+    swahiliSwitch:  'END Imebadilishwa kwenye Kiswahili.\nPiga simu tena: *384*1234#',
   },
   sw: {
     welcome:        (name: string) => `CON Mfumo wa Shule ya CBC\nKaribu, ${name}\n\n1. Maendeleo ya Mtoto\n2. Mahudhurio\n3. Malipo ya Shule\n4. Matukio ya Shule\n5. Ujumbe kwa Mwalimu\n6. Badilisha kwa Kiingereza\n0. Toka`,
-    welcomeNoAuth:  `END Samahani, nambari yako haijasajiliwa.\nWasiliana na shule yako.`,
+    welcomeNoAuth:  'END Samahani, nambari yako haijasajiliwa.\nWasiliana na shule yako.',
     selectChild:    (children: ChildSummary[]) =>
-      `CON Chagua mtoto:\n` +
+      'CON Chagua mtoto:\n' +
       children.map((c, i) => `${i + 1}. ${c.firstName} ${c.lastName} (${c.gradeLevel})`).join('\n') +
       '\n0. Rudi',
-    noChildren:     `END Watoto hawajapatikana kwa nambari hii.`,
+    noChildren:     'END Watoto hawajapatikana kwa nambari hii.',
     progress:       (c: ChildSummary) => {
       const levels = c.competencyLevels || {};
       const summary = Object.entries(levels).slice(0, 4).map(([k, v]) => `${k.slice(0, 4)}: ${v}`).join(', ');
@@ -123,20 +123,20 @@ const T = {
     },
     fees:           (c: ChildSummary) =>
       `END ${c.firstName} ${c.lastName}\nDeni la Shule: Ksh ${c.feeBalance.toLocaleString()}\nJumlaa: Ksh ${c.totalFeesRequired.toLocaleString()}\n` +
-      (c.feeBalance > 0 ? `Lipa M-Pesa:\nPaybill: ${c.schoolShortcode}\nAkaonti: ${c.id}` : `✓ Malipo yamekamilika.`),
+      (c.feeBalance > 0 ? `Lipa M-Pesa:\nPaybill: ${c.schoolShortcode}\nAkaonti: ${c.id}` : '✓ Malipo yamekamilika.'),
     events:         (events: EventRow[]) =>
       events.length
-        ? `END Matukio Yanayokuja:\n` + events.slice(0, 4).map(e => `• ${e.title}: ${formatDate(e.date)}`).join('\n')
-        : `END Hakuna matukio yanayokuja.`,
+        ? 'END Matukio Yanayokuja:\n' + events.slice(0, 4).map(e => `• ${e.title}: ${formatDate(e.date)}`).join('\n')
+        : 'END Hakuna matukio yanayokuja.',
     messageTeacher: (c: ChildSummary) =>
       `CON Tuma ujumbe kwa mwalimu wa ${c.firstName}?\nAndika ujumbe wako (herufi 120 zaidi).`,
     messageSent:    (teacher: string) =>
       `END Ujumbe umetumwa kwa ${teacher}.\nWatajibu ndani ya masaa 24.`,
-    messageFailed:  `END Imeshindwa kutuma ujumbe.`,
-    invalidInput:   `END Ingizo batili. Piga simu tena.`,
-    sessionTimeout: `END Kipindi kimeisha. Piga simu tena.`,
-    goodbye:        `END Asante kutumia CBC Portal.\nKaa salama!`,
-    swahiliSwitch:  `END Switched to English.\nDial again: *384*1234#`,
+    messageFailed:  'END Imeshindwa kutuma ujumbe.',
+    invalidInput:   'END Ingizo batili. Piga simu tena.',
+    sessionTimeout: 'END Kipindi kimeisha. Piga simu tena.',
+    goodbye:        'END Asante kutumia CBC Portal.\nKaa salama!',
+    swahiliSwitch:  'END Switched to English.\nDial again: *384*1234#',
   },
 };
 
@@ -193,7 +193,7 @@ export class UssdService {
 
     } catch (err) {
       logger.error('USSD handler error', { sessionId, phoneNumber, error: err });
-      return `END Something went wrong. Please try again.` as UssdResponse;
+      return 'END Something went wrong. Please try again.' as UssdResponse;
     }
   }
 
@@ -219,7 +219,7 @@ export class UssdService {
   private async initSession(
     sessionId: string,
     phoneNumber: string,
-    networkCode: string
+    networkCode: string,
   ): Promise<UssdSessionState> {
     // Normalize phone: strip leading + or 0 and ensure 254 prefix
     const normalized = this.normalizePhone(phoneNumber);
@@ -245,7 +245,7 @@ export class UssdService {
     session: UssdSessionState,
     inputs: string[],
     sessionId: string,
-    lang: 'en' | 'sw'
+    lang: 'en' | 'sw',
   ): Promise<UssdResponse> {
     const t = T[lang];
     const depth = inputs.length;
@@ -323,34 +323,34 @@ export class UssdService {
       const actionDepth = multiChild ? 2 : 1;
 
       switch (root) {
-        case '1': // Progress
-          return t.progress(child) as UssdResponse;
+      case '1': // Progress
+        return t.progress(child) as UssdResponse;
 
-        case '2': // Attendance
-          const attRows = await this.loadAttendance(child.id);
-          return t.attendance(child, attRows) as UssdResponse;
+      case '2': // Attendance
+        const attRows = await this.loadAttendance(child.id);
+        return t.attendance(child, attRows) as UssdResponse;
 
-        case '3': // Fee balance
-          return t.fees(child) as UssdResponse;
+      case '3': // Fee balance
+        return t.fees(child) as UssdResponse;
 
-        case '5': // Message teacher
-          if (depth <= actionDepth) {
-            return t.messageTeacher(child) as UssdResponse;
-          }
-          // User has typed their message
-          const messageText = inputs[actionDepth];
-          if (!messageText || messageText === '0') {
-            return t.welcome(child.firstName + "'s parent") as UssdResponse;
-          }
-          const sent = await this.queueTeacherMessage({
-            parentPhone: session.phoneNumber,
-            studentId: child.id,
-            studentName: `${child.firstName} ${child.lastName}`,
-            teacherName: child.teacherName,
-            message: messageText.slice(0, 120),
-            channel: 'ussd',
-          });
-          return (sent ? t.messageSent(child.teacherName) : t.messageFailed) as UssdResponse;
+      case '5': // Message teacher
+        if (depth <= actionDepth) {
+          return t.messageTeacher(child) as UssdResponse;
+        }
+        // User has typed their message
+        const messageText = inputs[actionDepth];
+        if (!messageText || messageText === '0') {
+          return t.welcome(child.firstName + "'s parent") as UssdResponse;
+        }
+        const sent = await this.queueTeacherMessage({
+          parentPhone: session.phoneNumber,
+          studentId: child.id,
+          studentName: `${child.firstName} ${child.lastName}`,
+          teacherName: child.teacherName,
+          message: messageText.slice(0, 120),
+          channel: 'ussd',
+        });
+        return (sent ? t.messageSent(child.teacherName) : t.messageFailed) as UssdResponse;
       }
     }
 
@@ -377,7 +377,7 @@ export class UssdService {
          FROM users u
          WHERE u.phone = $1 AND u.role = 'parent' AND u.status = 'active'
          LIMIT 1`,
-        [phone]
+        [phone],
       );
       if (result.rows.length > 0) {
         const u = result.rows[0];
@@ -391,7 +391,7 @@ export class UssdService {
          WHERE (s.primary_phone = $1 OR s.secondary_phone = $1)
            AND s.enrollment_status = 'active'
          LIMIT 1`,
-        [phone]
+        [phone],
       );
       if (fallback.rows.length > 0) {
         return { id: fallback.rows[0].parent_id, name: 'Parent' };
@@ -425,7 +425,7 @@ export class UssdService {
          LEFT JOIN users t ON t.id = ca.teacher_id
          WHERE s.parent_id = $1 AND s.enrollment_status = 'active'
          ORDER BY s.grade_level, s.first_name`,
-        [parentId]
+        [parentId],
       );
 
       return result.rows.map(r => ({
@@ -456,7 +456,7 @@ export class UssdService {
          WHERE student_id = $1
            AND attendance_date >= NOW() - INTERVAL '30 days'
          ORDER BY attendance_date DESC`,
-        [studentId]
+        [studentId],
       );
       return result.rows;
     } catch {
@@ -473,7 +473,7 @@ export class UssdService {
          WHERE sc.name = $1 AND e.event_date >= NOW()
          ORDER BY e.event_date ASC
          LIMIT 4`,
-        [schoolName]
+        [schoolName],
       );
       return result.rows.map(r => ({ title: r.title, date: r.event_date, description: r.description }));
     } catch {
@@ -494,7 +494,7 @@ export class UssdService {
         `INSERT INTO parent_messages
            (parent_phone, student_id, student_name, teacher_name, message, channel, status, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, 'pending', NOW())`,
-        [msg.parentPhone, msg.studentId, msg.studentName, msg.teacherName, msg.message, msg.channel]
+        [msg.parentPhone, msg.studentId, msg.studentName, msg.teacherName, msg.message, msg.channel],
       );
       logger.info('USSD teacher message queued', { studentId: msg.studentId, teacher: msg.teacherName });
       return true;
@@ -518,47 +518,47 @@ export class UssdService {
 
     try {
       switch (cmd) {
-        case 'PROGRESS': {
-          if (!studentId) return 'Usage: PROGRESS <student_id>. Example: PROGRESS 12345';
-          const children = await this.loadChildById(studentId, phone);
-          if (!children) return `Student ${studentId} not found or not linked to your number.`;
-          const c = children;
-          const levels = c.competencyLevels || {};
-          const summary = Object.entries(levels).map(([k, v]) => `${k}: ${v}`).join(', ');
-          return `${c.firstName} ${c.lastName} (${c.className})\nTerm Report: ${summary || 'No report yet'}\nAttendance: ${c.attendancePercent}%\nFee Bal: Ksh ${c.feeBalance.toLocaleString()}\ncbc-learn.ke/r/${c.id}`;
-        }
-        case 'FEES': {
-          if (!studentId) return 'Usage: FEES <student_id>. Example: FEES 12345';
-          const c = await this.loadChildById(studentId, phone);
-          if (!c) return `Student ${studentId} not found.`;
-          return c.feeBalance > 0
-            ? `${c.firstName} ${c.lastName}\nFee Balance: Ksh ${c.feeBalance.toLocaleString()}\nPay via M-Pesa Paybill ${c.schoolShortcode}, Acc: ${c.id}`
-            : `${c.firstName} ${c.lastName}: Fees fully paid. ✓`;
-        }
-        case 'ATTENDANCE': {
-          if (!studentId) return 'Usage: ATTENDANCE <student_id>';
-          const c = await this.loadChildById(studentId, phone);
-          if (!c) return `Student ${studentId} not found.`;
-          const att = await this.loadAttendance(studentId);
-          const p = att.filter(d => d.status === 'present').length;
-          const a = att.filter(d => d.status === 'absent').length;
-          return `${c.firstName} ${c.lastName}\nLast 30 days: Present ${p}, Absent ${a}\nRate: ${c.attendancePercent}%`;
-        }
-        case 'HELP':
-          return 'CBC Portal SMS Commands:\nPROGRESS <id> - Term report\nFEES <id> - Fee balance\nATTENDANCE <id> - Attendance\nEVENTS - School events\nDial *384*1234# for full menu';
-        case 'EVENTS': {
-          // Use first child's school
-          const parent = await this.lookupParent(phone);
-          if (!parent) return 'Number not registered. Contact your school.';
-          const children = await this.loadChildren(parent.id);
-          if (!children.length) return 'No children found.';
-          const events = await this.loadUpcomingEvents(children[0].schoolName);
-          return events.length
-            ? 'Upcoming Events:\n' + events.map(e => `• ${e.title}: ${formatDate(e.date)}`).join('\n')
-            : 'No upcoming events. Check app.';
-        }
-        default:
-          return 'Unknown command. Send HELP for command list or dial *384*1234#';
+      case 'PROGRESS': {
+        if (!studentId) return 'Usage: PROGRESS <student_id>. Example: PROGRESS 12345';
+        const children = await this.loadChildById(studentId, phone);
+        if (!children) return `Student ${studentId} not found or not linked to your number.`;
+        const c = children;
+        const levels = c.competencyLevels || {};
+        const summary = Object.entries(levels).map(([k, v]) => `${k}: ${v}`).join(', ');
+        return `${c.firstName} ${c.lastName} (${c.className})\nTerm Report: ${summary || 'No report yet'}\nAttendance: ${c.attendancePercent}%\nFee Bal: Ksh ${c.feeBalance.toLocaleString()}\ncbc-learn.ke/r/${c.id}`;
+      }
+      case 'FEES': {
+        if (!studentId) return 'Usage: FEES <student_id>. Example: FEES 12345';
+        const c = await this.loadChildById(studentId, phone);
+        if (!c) return `Student ${studentId} not found.`;
+        return c.feeBalance > 0
+          ? `${c.firstName} ${c.lastName}\nFee Balance: Ksh ${c.feeBalance.toLocaleString()}\nPay via M-Pesa Paybill ${c.schoolShortcode}, Acc: ${c.id}`
+          : `${c.firstName} ${c.lastName}: Fees fully paid. ✓`;
+      }
+      case 'ATTENDANCE': {
+        if (!studentId) return 'Usage: ATTENDANCE <student_id>';
+        const c = await this.loadChildById(studentId, phone);
+        if (!c) return `Student ${studentId} not found.`;
+        const att = await this.loadAttendance(studentId);
+        const p = att.filter(d => d.status === 'present').length;
+        const a = att.filter(d => d.status === 'absent').length;
+        return `${c.firstName} ${c.lastName}\nLast 30 days: Present ${p}, Absent ${a}\nRate: ${c.attendancePercent}%`;
+      }
+      case 'HELP':
+        return 'CBC Portal SMS Commands:\nPROGRESS <id> - Term report\nFEES <id> - Fee balance\nATTENDANCE <id> - Attendance\nEVENTS - School events\nDial *384*1234# for full menu';
+      case 'EVENTS': {
+        // Use first child's school
+        const parent = await this.lookupParent(phone);
+        if (!parent) return 'Number not registered. Contact your school.';
+        const children = await this.loadChildren(parent.id);
+        if (!children.length) return 'No children found.';
+        const events = await this.loadUpcomingEvents(children[0].schoolName);
+        return events.length
+          ? 'Upcoming Events:\n' + events.map(e => `• ${e.title}: ${formatDate(e.date)}`).join('\n')
+          : 'No upcoming events. Check app.';
+      }
+      default:
+        return 'Unknown command. Send HELP for command list or dial *384*1234#';
       }
     } catch (err) {
       logger.error('SMS command error', { from, cmd, error: err });
@@ -589,7 +589,7 @@ export class UssdService {
            AND (s.primary_phone = $2 OR s.secondary_phone = $2 OR s.parent_id IN (
              SELECT id FROM users WHERE phone = $2 AND role = 'parent'
            ))`,
-        [studentId, phone]
+        [studentId, phone],
       );
       if (!result.rows.length) return null;
       const r = result.rows[0];

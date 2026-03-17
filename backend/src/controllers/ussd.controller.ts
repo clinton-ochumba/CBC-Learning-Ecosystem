@@ -17,7 +17,7 @@ import { logger } from '../utils/logger';
 export class UssdController {
   constructor(
     private ussdService: UssdService,
-    private smsService: SmsNotificationService
+    private smsService: SmsNotificationService,
   ) {}
 
   /**
@@ -98,27 +98,27 @@ export class UssdController {
     try {
       let result;
       switch (type) {
-        case 'attendance_alert':
-          result = await this.smsService.sendAttendanceAlert(params);
-          break;
-        case 'grade_update':
-          result = await this.smsService.sendGradeUpdate(params);
-          break;
-        case 'fee_reminder':
-          result = await this.smsService.sendFeeReminder(params);
-          break;
-        case 'payment_confirmation':
-          result = await this.smsService.sendPaymentConfirmation(params);
-          break;
-        case 'school_event':
-          result = await this.smsService.sendSchoolEvent(params);
-          break;
-        case 'emergency_alert':
-          result = await this.smsService.sendEmergencyAlert(params);
-          break;
-        default:
-          res.status(400).json({ error: `Unknown notification type: ${type}` });
-          return;
+      case 'attendance_alert':
+        result = await this.smsService.sendAttendanceAlert(params);
+        break;
+      case 'grade_update':
+        result = await this.smsService.sendGradeUpdate(params);
+        break;
+      case 'fee_reminder':
+        result = await this.smsService.sendFeeReminder(params);
+        break;
+      case 'payment_confirmation':
+        result = await this.smsService.sendPaymentConfirmation(params);
+        break;
+      case 'school_event':
+        result = await this.smsService.sendSchoolEvent(params);
+        break;
+      case 'emergency_alert':
+        result = await this.smsService.sendEmergencyAlert(params);
+        break;
+      default:
+        res.status(400).json({ error: `Unknown notification type: ${type}` });
+        return;
       }
       res.status(200).json({ success: true, result });
     } catch (err: any) {

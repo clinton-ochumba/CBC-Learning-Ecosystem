@@ -82,7 +82,7 @@ class MpesaPaymentService {
    * Initiate M-Pesa STK Push payment
    */
   async initiatePayment(
-    request: InitiatePaymentRequest
+    request: InitiatePaymentRequest,
   ): Promise<InitiatePaymentResponse> {
     try {
       // Validate phone number format
@@ -103,7 +103,7 @@ class MpesaPaymentService {
 
       const response = await this.apiClient.post<InitiatePaymentResponse>(
         '/initiate',
-        request
+        request,
       );
 
       return response.data;
@@ -121,11 +121,11 @@ class MpesaPaymentService {
    * Query payment status
    */
   async queryPaymentStatus(
-    checkoutRequestId: string
+    checkoutRequestId: string,
   ): Promise<PaymentStatusResponse> {
     try {
       const response = await this.apiClient.get<PaymentStatusResponse>(
-        `/status/${checkoutRequestId}`
+        `/status/${checkoutRequestId}`,
       );
       return response.data;
     } catch (error: any) {
@@ -145,12 +145,12 @@ class MpesaPaymentService {
       offset?: number;
       from?: string;
       to?: string;
-    }
+    },
   ): Promise<PaymentHistoryResponse> {
     try {
       const response = await this.apiClient.get<PaymentHistoryResponse>(
         `/student/${studentId}/history`,
-        { params }
+        { params },
       );
       return response.data;
     } catch (error: any) {
@@ -166,7 +166,7 @@ class MpesaPaymentService {
   async pollPaymentStatus(
     checkoutRequestId: string,
     maxAttempts: number = 30,
-    intervalMs: number = 2000
+    intervalMs: number = 2000,
   ): Promise<PaymentStatusResponse> {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       await this.sleep(intervalMs);

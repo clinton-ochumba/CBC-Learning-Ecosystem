@@ -122,7 +122,7 @@ export class MpesaService {
           }
         }
         return Promise.reject(error);
-      }
+      },
     );
 
     // FIX BUG-04: Initialise Africa's Talking SMS client
@@ -150,14 +150,14 @@ export class MpesaService {
 
     try {
       const auth = Buffer.from(
-        `${this.config.consumerKey}:${this.config.consumerSecret}`
+        `${this.config.consumerKey}:${this.config.consumerSecret}`,
       ).toString('base64');
 
       const response = await this.axiosInstance.get(
         '/oauth/v1/generate?grant_type=client_credentials',
         {
           headers: { Authorization: `Basic ${auth}` },
-        }
+        },
       );
 
       const token = response.data.access_token;
@@ -212,7 +212,7 @@ export class MpesaService {
       const token = await this.getAccessToken();
       const timestamp = moment().format('YYYYMMDDHHmmss');
       const password = Buffer.from(
-        `${this.config.shortcode}${this.config.passkey}${timestamp}`
+        `${this.config.shortcode}${this.config.passkey}${timestamp}`,
       ).toString('base64');
 
       const payload = {
@@ -243,7 +243,7 @@ export class MpesaService {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       await this.logSTKPushTransaction({
@@ -272,7 +272,7 @@ export class MpesaService {
         request,
       });
       throw new Error(
-        error.response?.data?.errorMessage || 'Payment initiation failed'
+        error.response?.data?.errorMessage || 'Payment initiation failed',
       );
     }
   }
@@ -344,16 +344,16 @@ export class MpesaService {
    */
   private async handleSuccessfulPayment(
     callback: any,
-    transaction: any
+    transaction: any,
   ): Promise<void> {
     const metadata = callback.CallbackMetadata.Item;
 
     const amount = metadata.find((i: any) => i.Name === 'Amount')?.Value;
     const mpesaReceiptNumber = metadata.find(
-      (i: any) => i.Name === 'MpesaReceiptNumber'
+      (i: any) => i.Name === 'MpesaReceiptNumber',
     )?.Value;
     const transactionDate = metadata.find(
-      (i: any) => i.Name === 'TransactionDate'
+      (i: any) => i.Name === 'TransactionDate',
     )?.Value;
 
     await db.transaction(async (trx) => {
@@ -431,7 +431,7 @@ export class MpesaService {
 
     // FIX BUG-04: Send actual SMS confirmation — fire-and-forget
     this.sendPaymentSuccessSMS(transaction, amount, mpesaReceiptNumber).catch(
-      (err) => logger.error('SMS send failed (non-fatal)', { error: err.message })
+      (err) => logger.error('SMS send failed (non-fatal)', { error: err.message }),
     );
   }
 
@@ -440,7 +440,7 @@ export class MpesaService {
    */
   private async handleFailedPayment(
     callback: any,
-    transaction: any
+    transaction: any,
   ): Promise<void> {
     await db('mpesa_transactions')
       .where('id', transaction.id)
@@ -460,7 +460,7 @@ export class MpesaService {
 
     // FIX BUG-04: Notify parent of failure
     this.sendPaymentFailureSMS(transaction, callback.ResultDesc).catch(
-      (err) => logger.error('Failure SMS send failed (non-fatal)', { error: err.message })
+      (err) => logger.error('Failure SMS send failed (non-fatal)', { error: err.message }),
     );
   }
 
@@ -472,7 +472,7 @@ export class MpesaService {
       const token = await this.getAccessToken();
       const timestamp = moment().format('YYYYMMDDHHmmss');
       const password = Buffer.from(
-        `${this.config.shortcode}${this.config.passkey}${timestamp}`
+        `${this.config.shortcode}${this.config.passkey}${timestamp}`,
       ).toString('base64');
 
       const response = await this.axiosInstance.post(
@@ -488,7 +488,7 @@ export class MpesaService {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       return response.data;
@@ -507,7 +507,7 @@ export class MpesaService {
    */
   async registerC2BUrls(
     confirmationUrl: string,
-    validationUrl: string
+    validationUrl: string,
   ): Promise<void> {
     try {
       const token = await this.getAccessToken();
@@ -525,7 +525,7 @@ export class MpesaService {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-        }
+        },
       );
 
       logger.info('C2B URLs registered successfully');
@@ -630,7 +630,7 @@ export class MpesaService {
    */
   async getTransactionHistory(
     schoolId: number,
-    options: TransactionHistoryOptions = {}
+    options: TransactionHistoryOptions = {},
   ): Promise<any[]> {
     const { status, limit = 50, offset = 0, from, to } = options;
 
@@ -653,7 +653,7 @@ export class MpesaService {
    */
   async getPaymentMetrics(
     schoolId: number,
-    options: { from?: Date | string; to?: Date | string } = {}
+    options: { from?: Date | string; to?: Date | string } = {},
   ): Promise<PaymentMetrics> {
     let query = db('mpesa_transactions').where('school_id', schoolId);
 
@@ -667,7 +667,7 @@ export class MpesaService {
     const pendingTransactions = rows.filter((r) => r.status === 'pending');
     const totalRevenue = successfulTransactions.reduce(
       (sum, r) => sum + parseFloat(r.amount || '0'),
-      0
+      0,
     );
 
     return {
@@ -721,7 +721,7 @@ export class MpesaService {
   private async sendPaymentSuccessSMS(
     transaction: any,
     amount: number,
-    receiptNumber: string
+    receiptNumber: string,
   ): Promise<void> {
     if (!this.smsClient) {
       logger.info('SMS skipped — Africa\'s Talking not configured', { receiptNumber });
@@ -743,7 +743,7 @@ export class MpesaService {
 
   private async sendPaymentFailureSMS(
     transaction: any,
-    reason: string
+    reason: string,
   ): Promise<void> {
     if (!this.smsClient) return;
 

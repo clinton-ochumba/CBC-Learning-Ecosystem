@@ -90,7 +90,7 @@ export function createUssdRouter(db: Knex, redis: Redis) {
     atWebhookLimit,
     verifyAtOrigin,
     express.urlencoded({ extended: false }),
-    controller.handleUssdCallback
+    controller.handleUssdCallback,
   );
 
   /**
@@ -102,7 +102,7 @@ export function createUssdRouter(db: Knex, redis: Redis) {
     atWebhookLimit,
     verifyAtOrigin,
     express.urlencoded({ extended: false }),
-    controller.handleSmsInbound
+    controller.handleSmsInbound,
   );
 
   /**
@@ -115,7 +115,7 @@ export function createUssdRouter(db: Knex, redis: Redis) {
     '/notify',
     authenticate,
     notifyLimit,
-    controller.sendNotification
+    controller.sendNotification,
   );
 
   /**

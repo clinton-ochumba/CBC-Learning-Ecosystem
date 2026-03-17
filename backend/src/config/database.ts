@@ -13,17 +13,17 @@ const isProd = process.env.NODE_ENV === 'production';
 
 const connection = process.env.DATABASE_URL
   ? {
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },   // Neon & Railway use self-signed certs
-    }
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },   // Neon & Railway use self-signed certs
+  }
   : {
-      host:     process.env.DB_HOST     || 'localhost',
-      port:     parseInt(process.env.DB_PORT || '5432', 10),
-      database: process.env.DB_NAME     || 'cbc_learning_ecosystem',
-      user:     process.env.DB_USER     || 'postgres',
-      password: process.env.DB_PASSWORD || '',
-      ssl:      process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    };
+    host:     process.env.DB_HOST     || 'localhost',
+    port:     parseInt(process.env.DB_PORT || '5432', 10),
+    database: process.env.DB_NAME     || 'cbc_learning_ecosystem',
+    user:     process.env.DB_USER     || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+    ssl:      process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  };
 
 export const db = Knex({
   client: 'postgresql',

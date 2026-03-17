@@ -51,7 +51,7 @@ router.post(
     body('password').isLength({ min: 1 }).withMessage('Password required'),
   ],
   validate,
-  AuthController.login
+  AuthController.login,
 );
 
 /**
@@ -63,7 +63,7 @@ router.post(
   refreshLimiter,
   [body('refreshToken').isString().notEmpty().withMessage('Refresh token required')],
   validate,
-  AuthController.refresh
+  AuthController.refresh,
 );
 
 /**
@@ -95,7 +95,7 @@ router.post(
       .withMessage('Invalid role'),
   ],
   validate,
-  AuthController.register
+  AuthController.register,
 );
 
 /**
@@ -110,7 +110,7 @@ router.post(
     body('newPassword').isLength({ min: 8 }).withMessage('New password must be at least 8 characters'),
   ],
   validate,
-  AuthController.changePassword
+  AuthController.changePassword,
 );
 
 export default router;

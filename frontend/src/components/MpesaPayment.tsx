@@ -201,14 +201,14 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
 
   const getStatusIcon = () => {
     switch (paymentStatus) {
-      case 'waiting':
-        return <Loader className="w-6 h-6 animate-spin text-blue-500" />;
-      case 'success':
-        return <CheckCircle className="w-6 h-6 text-green-500" />;
-      case 'failed':
-        return <XCircle className="w-6 h-6 text-red-500" />;
-      default:
-        return null;
+    case 'waiting':
+      return <Loader className="w-6 h-6 animate-spin text-blue-500" />;
+    case 'success':
+      return <CheckCircle className="w-6 h-6 text-green-500" />;
+    case 'failed':
+      return <XCircle className="w-6 h-6 text-red-500" />;
+    default:
+      return null;
     }
   };
 
@@ -266,8 +266,8 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
             paymentStatus === 'success'
               ? 'bg-green-50 border-green-200'
               : paymentStatus === 'failed'
-              ? 'bg-red-50 border-red-200'
-              : 'bg-blue-50 border-blue-200'
+                ? 'bg-red-50 border-red-200'
+                : 'bg-blue-50 border-blue-200'
           }`}
         >
           {getStatusIcon()}

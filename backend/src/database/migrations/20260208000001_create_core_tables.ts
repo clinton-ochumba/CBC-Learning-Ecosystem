@@ -26,7 +26,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('last_name', 100).notNullable();
     table.string('phone', 20).nullable();
     table.enum('role', ['super_admin','school_admin','teacher','parent','student'])
-         .notNullable().defaultTo('parent');
+      .notNullable().defaultTo('parent');
 
     // Auth / session
     table.string('refresh_token_hash', 255).nullable();
@@ -58,9 +58,9 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('teachers', (table) => {
     table.increments('id').primary();
     table.integer('user_id').notNullable()
-         .references('id').inTable('users').onDelete('CASCADE');
+      .references('id').inTable('users').onDelete('CASCADE');
     table.integer('school_id').notNullable()
-         .references('id').inTable('schools').onDelete('CASCADE');
+      .references('id').inTable('schools').onDelete('CASCADE');
 
     table.string('tsc_number', 50).nullable();
     table.string('national_id', 20).nullable();
@@ -88,7 +88,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('parents', (table) => {
     table.increments('id').primary();
     table.integer('user_id').notNullable()
-         .references('id').inTable('users').onDelete('CASCADE');
+      .references('id').inTable('users').onDelete('CASCADE');
 
     table.string('national_id', 20).nullable();
     table.string('phone_number', 20).notNullable();
@@ -117,9 +117,9 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('classes', (table) => {
     table.increments('id').primary();
     table.integer('school_id').notNullable()
-         .references('id').inTable('schools').onDelete('CASCADE');
+      .references('id').inTable('schools').onDelete('CASCADE');
     table.integer('teacher_id').nullable()
-         .references('id').inTable('teachers').onDelete('SET NULL');
+      .references('id').inTable('teachers').onDelete('SET NULL');
 
     table.string('name', 100).notNullable();
     table.string('grade_level', 20).notNullable();
@@ -165,15 +165,15 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('assessments', (table) => {
     table.increments('id').primary();
     table.integer('student_id').notNullable()
-         .references('id').inTable('students').onDelete('CASCADE');
+      .references('id').inTable('students').onDelete('CASCADE');
     table.integer('teacher_id').nullable()
-         .references('id').inTable('teachers').onDelete('SET NULL');
+      .references('id').inTable('teachers').onDelete('SET NULL');
     table.integer('school_id').notNullable()
-         .references('id').inTable('schools').onDelete('CASCADE');
+      .references('id').inTable('schools').onDelete('CASCADE');
     table.integer('competency_id').notNullable()
-         .references('id').inTable('competencies').onDelete('RESTRICT');
+      .references('id').inTable('competencies').onDelete('RESTRICT');
     table.integer('class_id').nullable()
-         .references('id').inTable('classes').onDelete('SET NULL');
+      .references('id').inTable('classes').onDelete('SET NULL');
 
     table.enum('performance_level', ['EE','ME','AE','BE']).notNullable();
     table.decimal('score', 5, 2).nullable();
@@ -197,11 +197,11 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('fee_payments', (table) => {
     table.increments('id').primary();
     table.integer('student_id').notNullable()
-         .references('id').inTable('students').onDelete('CASCADE');
+      .references('id').inTable('students').onDelete('CASCADE');
     table.integer('school_id').notNullable()
-         .references('id').inTable('schools').onDelete('CASCADE');
+      .references('id').inTable('schools').onDelete('CASCADE');
     table.integer('parent_id').nullable()
-         .references('id').inTable('parents').onDelete('SET NULL');
+      .references('id').inTable('parents').onDelete('SET NULL');
 
     table.decimal('amount', 10, 2).notNullable();
     table.decimal('fee_balance_before', 10, 2).nullable();
@@ -232,7 +232,7 @@ export async function up(knex: Knex): Promise<void> {
     table.boolean('reconciled').defaultTo(false);
     table.timestamp('reconciled_at').nullable();
     table.integer('reconciled_by').nullable()
-         .references('id').inTable('users').onDelete('SET NULL');
+      .references('id').inTable('users').onDelete('SET NULL');
 
     table.text('notes').nullable();
     table.timestamp('created_at').defaultTo(knex.fn.now());
@@ -265,7 +265,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('notifications', (table) => {
     table.increments('id').primary();
     table.integer('user_id').nullable()
-         .references('id').inTable('users').onDelete('CASCADE');
+      .references('id').inTable('users').onDelete('CASCADE');
     table.integer('school_id').nullable();
     table.enum('channel', ['sms','email','push','in_app']).notNullable();
     table.enum('type', ['payment_confirmed','payment_failed','fee_reminder',
@@ -287,7 +287,7 @@ export async function up(knex: Knex): Promise<void> {
   await knex.schema.createTable('audit_log', (table) => {
     table.bigIncrements('id').primary();
     table.integer('user_id').nullable()
-         .references('id').inTable('users').onDelete('SET NULL');
+      .references('id').inTable('users').onDelete('SET NULL');
     table.integer('school_id').nullable();
     table.string('action', 100).notNullable();
     table.string('entity_type', 50).nullable();
@@ -307,7 +307,7 @@ export async function up(knex: Knex): Promise<void> {
 export async function down(knex: Knex): Promise<void> {
   await knex.raw('DROP VIEW IF EXISTS payments');
   for (const t of ['audit_log','notifications','fee_payments','assessments',
-                    'competencies','classes','parents','teachers','users']) {
+    'competencies','classes','parents','teachers','users']) {
     await knex.schema.dropTableIfExists(t);
   }
 }

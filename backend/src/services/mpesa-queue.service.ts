@@ -43,24 +43,24 @@ export class MpesaQueueService {
   private mpesaService: MpesaService;
   private logger: Logger;
   private alertService: AlertService;
-  
+
   // Rate limiting: 25 req/sec (safely below 30/sec limit)
   private readonly MAX_REQUESTS_PER_SECOND = 25;
   private readonly QUEUE_NAME = 'mpesa-payments';
-  
+
   constructor(config: MpesaConfig) {
     this.logger = new Logger('MpesaQueueService');
     this.alertService = new AlertService('MpesaQueueService');
     this.mpesaService = new MpesaService(config);
-    
+
     // Redis connection
     this.redis = new Redis({
       host: process.env.REDIS_HOST || 'localhost',
       port: parseInt(process.env.REDIS_PORT || '6379'),
       password: process.env.REDIS_PASSWORD,
-      retryStrategy: (times) => Math.min(times * 50, 2000)
+      retryStrategy: (times) => Math.min(times * 50, 2000),
     });
-    
+
     // Bull queue with rate limiting
     this.queue = new Bull(this.QUEUE_NAME, {
       redis: {
@@ -71,31 +71,31 @@ export class MpesaQueueService {
       limiter: {
         max: this.MAX_REQUESTS_PER_SECOND,
         duration: 1000, // per second
-        bounceBack: false // Don't return to queue if rate limited
+        bounceBack: false, // Don't return to queue if rate limited
       },
       defaultJobOptions: {
         attempts: 3,
         backoff: {
           type: 'exponential',
-          delay: 2000 // 2s, 4s, 8s
+          delay: 2000, // 2s, 4s, 8s
         },
         removeOnComplete: {
           age: 24 * 3600, // Keep for 24 hours
-          count: 1000 // Keep last 1000
+          count: 1000, // Keep last 1000
         },
         removeOnFail: {
-          age: 7 * 24 * 3600 // Keep failures for 7 days
-        }
-      }
+          age: 7 * 24 * 3600, // Keep failures for 7 days
+        },
+      },
     });
-    
+
     // Process jobs
     this.setupProcessors();
-    
+
     // Monitor queue health
     this.setupMonitoring();
   }
-  
+
   /**
    * Queue a payment for processing
    */
@@ -103,56 +103,56 @@ export class MpesaQueueService {
     try {
       // Validate payment data
       this.validatePaymentRequest(paymentData);
-      
+
       // Check for duplicate (prevent double charging)
       const isDuplicate = await this.checkDuplicate(paymentData);
       if (isDuplicate) {
         throw new Error('Duplicate payment request within 5 minutes');
       }
-      
+
       // Add to queue with priority based on amount
       const priority = this.calculatePriority(paymentData.amount);
-      
+
       const job = await this.queue.add('process-payment', paymentData, {
         priority,
         jobId: `${paymentData.school_id}-${paymentData.parent_id}-${Date.now()}`,
         timeout: 30000, // 30 second timeout
       });
-      
+
       this.logger.info('Payment queued', {
         job_id: job.id,
         school_id: paymentData.school_id,
-        amount: paymentData.amount
+        amount: paymentData.amount,
       });
-      
+
       // Track in Redis for duplicate detection
       await this.markAsQueued(paymentData);
-      
+
       return job;
-      
+
     } catch (error) {
       this.logger.error('Failed to queue payment', { error, paymentData });
       throw error;
     }
   }
-  
+
   /**
    * Process payment jobs
    */
   private setupProcessors(): void {
     this.queue.process('process-payment', 5, async (job: Job<PaymentRequest>) => {
       const { data } = job;
-      
+
       try {
         this.logger.info('Processing payment', {
           job_id: job.id,
           attempt: job.attemptsMade + 1,
-          school_id: data.school_id
+          school_id: data.school_id,
         });
-        
+
         // Update job progress
         await job.progress(10);
-        
+
         // Call M-Pesa STK Push
         const result = await this.mpesaService.initiateSTKPush({
           phoneNumber: data.phone_number,
@@ -161,42 +161,42 @@ export class MpesaQueueService {
           transactionDesc: data.transaction_desc,
           studentId: 0,
           schoolId: parseInt(data.school_id || '0'),
-          idempotencyKey: undefined
+          idempotencyKey: undefined,
         });
-        
+
         await job.progress(50);
-        
+
         if (result.ResponseCode !== '0') {
           throw new Error(result.ResponseDescription || 'M-Pesa request failed');
         }
-        
+
         // Create payment result
         const paymentResult: PaymentResult = {
           success: true,
           transaction_id: result.CheckoutRequestID,
           merchant_request_id: result.MerchantRequestID,
-          checkout_request_id: result.CheckoutRequestID
+          checkout_request_id: result.CheckoutRequestID,
         };
-        
+
         // Store transaction for callback matching
         await this.storeTransaction(data, paymentResult);
-        
+
         await job.progress(100);
-        
+
         this.logger.info('Payment processed successfully', {
           job_id: job.id,
-          transaction_id: result.CheckoutRequestID
+          transaction_id: result.CheckoutRequestID,
         });
-        
+
         return paymentResult as any;
-        
+
       } catch (error) {
         this.logger.error('Payment processing failed', {
           job_id: job.id,
           attempt: job.attemptsMade + 1,
-          error: error instanceof Error ? error.message : String(error)
+          error: error instanceof Error ? error.message : String(error),
         });
-        
+
         // Alert on final failure
         if (job.attemptsMade >= 2) {
           await this.alertService.sendAlert({
@@ -204,35 +204,35 @@ export class MpesaQueueService {
             title: 'Payment Failed',
             message: `Payment failed after 3 attempts: ${data.account_reference}`,
             metadata: { job_id: job.id, school_id: data.school_id },
-            schoolId: data.school_id
+            schoolId: data.school_id,
           });
         }
-        
+
         throw error;
       }
     });
-    
+
     // Handle completed jobs
     this.queue.on('completed', async (job: Job, result: PaymentResult) => {
       this.logger.info('Job completed', {
         job_id: job.id,
-        transaction_id: result.checkout_request_id
+        transaction_id: result.checkout_request_id,
       });
     });
-    
+
     // Handle failed jobs
     this.queue.on('failed', async (job: Job, error: Error) => {
       this.logger.error('Job failed permanently', {
         job_id: job.id,
         error: error.message,
-        data: job.data
+        data: job.data,
       });
-      
+
       // Notify school/parent of failure
       await this.notifyPaymentFailure(job.data, error.message);
     });
   }
-  
+
   /**
    * Monitor queue health and alert on issues
    */
@@ -244,38 +244,38 @@ export class MpesaQueueService {
           this.queue.getWaitingCount(),
           this.queue.getActiveCount(),
           this.queue.getDelayedCount(),
-          this.queue.getFailedCount()
+          this.queue.getFailedCount(),
         ]);
-        
+
         // Alert if queue is backing up
         if (waiting > 1000) {
           await this.alertService.sendAlert({
             type: 'system_error',
             title: 'Queue Backlog',
             message: `M-Pesa queue has ${waiting} waiting jobs`,
-            metadata: { waiting, active, delayed, failed }
+            metadata: { waiting, active, delayed, failed },
           });
         }
-        
+
         // Alert if too many failures
         if (failed > 100) {
           await this.alertService.sendAlert({
             type: 'system_error',
             title: 'High Failure Rate',
             message: `M-Pesa queue has ${failed} failed jobs`,
-            metadata: { waiting, active, delayed, failed }
+            metadata: { waiting, active, delayed, failed },
           });
         }
-        
+
         // Track metrics
         await this.trackMetrics({ waiting, active, delayed, failed });
-        
+
       } catch (error) {
         this.logger.error('Queue monitoring failed', { error });
       }
     }, 30000);
   }
-  
+
   /**
    * Validate payment request
    */
@@ -283,20 +283,20 @@ export class MpesaQueueService {
     if (!data.phone_number || !/^254\d{9}$/.test(data.phone_number)) {
       throw new Error('Invalid phone number format. Must be 254XXXXXXXXX');
     }
-    
+
     if (!data.amount || data.amount < 1) {
       throw new Error('Invalid amount. Must be at least Ksh 1');
     }
-    
+
     if (data.amount > 150000) {
       throw new Error('Amount exceeds M-Pesa limit (Ksh 150,000)');
     }
-    
+
     if (!data.school_id || !data.parent_id) {
       throw new Error('Missing school_id or parent_id');
     }
   }
-  
+
   /**
    * Check for duplicate payment requests
    */
@@ -305,7 +305,7 @@ export class MpesaQueueService {
     const exists = await this.redis.get(key);
     return !!exists;
   }
-  
+
   /**
    * Mark payment as queued (for duplicate detection)
    */
@@ -313,7 +313,7 @@ export class MpesaQueueService {
     const key = `mpesa:duplicate:${data.school_id}:${data.parent_id}:${data.amount}`;
     await this.redis.setex(key, 300, '1'); // 5 minute window
   }
-  
+
   /**
    * Calculate job priority (higher amounts = higher priority)
    */
@@ -322,13 +322,13 @@ export class MpesaQueueService {
     if (amount >= 10000) return 5; // Medium priority
     return 10; // Normal priority
   }
-  
+
   /**
    * Store transaction for callback matching
    */
   private async storeTransaction(
     data: PaymentRequest,
-    result: PaymentResult
+    result: PaymentResult,
   ): Promise<void> {
     const key = `mpesa:transaction:${result.checkout_request_id}`;
     await this.redis.setex(
@@ -338,26 +338,26 @@ export class MpesaQueueService {
         ...data,
         merchant_request_id: result.merchant_request_id,
         checkout_request_id: result.checkout_request_id,
-        timestamp: new Date().toISOString()
-      })
+        timestamp: new Date().toISOString(),
+      }),
     );
   }
-  
+
   /**
    * Notify parent/school of payment failure
    */
   private async notifyPaymentFailure(
     data: PaymentRequest,
-    error: string
+    error: string,
   ): Promise<void> {
     // TODO: Send SMS/email notification
     this.logger.info('Payment failure notification sent', {
       school_id: data.school_id,
       parent_id: data.parent_id,
-      error
+      error,
     });
   }
-  
+
   /**
    * Track queue metrics for monitoring
    */
@@ -373,10 +373,10 @@ export class MpesaQueueService {
       active: metrics.active.toString(),
       delayed: metrics.delayed.toString(),
       failed: metrics.failed.toString(),
-      timestamp: Date.now().toString()
+      timestamp: Date.now().toString(),
     });
   }
-  
+
   /**
    * Get queue statistics
    */
@@ -386,9 +386,9 @@ export class MpesaQueueService {
       this.queue.getActiveCount(),
       this.queue.getDelayedCount(),
       this.queue.getFailedCount(),
-      this.queue.getCompletedCount()
+      this.queue.getCompletedCount(),
     ]);
-    
+
     return {
       waiting,
       active,
@@ -396,32 +396,32 @@ export class MpesaQueueService {
       failed,
       completed,
       total: waiting + active + delayed,
-      health: failed < 100 ? 'healthy' : 'degraded'
+      health: failed < 100 ? 'healthy' : 'degraded',
     };
   }
-  
+
   /**
    * Manually retry failed jobs
    */
   async retryFailed(limit: number = 100): Promise<number> {
     const failedJobs = await this.queue.getFailed(0, limit);
-    
+
     for (const job of failedJobs) {
       await job.retry();
     }
-    
+
     return failedJobs.length;
   }
-  
+
   /**
    * Clean up old completed/failed jobs
    */
   async cleanup(olderThanHours: number = 24): Promise<void> {
     const timestamp = Date.now() - (olderThanHours * 60 * 60 * 1000);
-    
+
     await this.queue.clean(timestamp, 'completed');
     await this.queue.clean(timestamp, 'failed');
-    
+
     this.logger.info('Queue cleanup completed', { olderThanHours });
   }
 }

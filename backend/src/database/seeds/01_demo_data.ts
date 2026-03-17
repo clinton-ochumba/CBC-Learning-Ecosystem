@@ -91,7 +91,7 @@ export async function seed(knex: Knex): Promise<void> {
 
   // ─── Students ──────────────────────────────────────────────────────────────
   const firstNames = ['Brian','Amina','Kevin','Fatuma','Peter','Wanjiku','Moses','Asha','John','Mary',
-                      'Daniel','Gladys','Samuel','Joyce','Paul','Rose','Joseph','Alice','James','Grace'];
+    'Daniel','Gladys','Samuel','Joyce','Paul','Rose','Joseph','Alice','James','Grace'];
   const lastNames  = ['Mwangi','Ouma','Kamau','Hassan','Njoroge','Wanjiru','Otieno','Ali','Kariuki','Njeri'];
   const grades     = ['G7','G8','G9','G10','G11','G12'];
   const genders    = ['male','female'];

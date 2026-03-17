@@ -20,7 +20,7 @@ export function createAttendanceRouter(db: Knex): Router {
     '/bulk',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    ctrl.markBulkAttendance
+    ctrl.markBulkAttendance,
   );
 
   // Fetch register for class on a date
@@ -28,7 +28,7 @@ export function createAttendanceRouter(db: Knex): Router {
     '/:classId/date',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    ctrl.getClassRegister
+    ctrl.getClassRegister,
   );
 
   // Correct a single record
@@ -36,7 +36,7 @@ export function createAttendanceRouter(db: Knex): Router {
     '/:recordId',
     authenticate,
     requireRole('teacher', 'school_admin', 'super_admin'),
-    ctrl.correctAttendance
+    ctrl.correctAttendance,
   );
 
   return router;
