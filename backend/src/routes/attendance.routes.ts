@@ -19,7 +19,7 @@ export function createAttendanceRouter(db: Knex): Router {
   router.post(
     '/bulk',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     ctrl.markBulkAttendance
   );
 
@@ -27,7 +27,7 @@ export function createAttendanceRouter(db: Knex): Router {
   router.get(
     '/:classId/date',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     ctrl.getClassRegister
   );
 
@@ -35,7 +35,7 @@ export function createAttendanceRouter(db: Knex): Router {
   router.put(
     '/:recordId',
     authenticate,
-    requireRole('teacher', 'principal', 'admin', 'super_admin'),
+    requireRole('teacher', 'school_admin', 'super_admin'),
     ctrl.correctAttendance
   );
 
