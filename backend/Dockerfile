@@ -3,9 +3,12 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies for native modules (Alpine compatibility)
+RUN apk add --no-cache python3 make g++ curl
+
 # Install dependencies (separate layer for caching)
-COPY package.json package-lock.json* ./
-RUN npm install
+COPY package*.json ./
+RUN npm cache clean --force && npm install --legacy-peer-deps
 
 # Copy source and compile TypeScript
 COPY tsconfig.json ./
