@@ -8,6 +8,16 @@ import { MpesaService } from './mpesa.service';
 import { Logger } from '../utils/logger';
 import { AlertService } from './alert.service';
 
+interface MpesaConfig {
+  consumerKey: string;
+  consumerSecret: string;
+  passkey: string;
+  shortcode: string;
+  environment: 'sandbox' | 'production';
+  callbackUrl: string;
+  timeoutUrl: string;
+}
+
 interface PaymentRequest {
   phone_number: string;
   amount: number;
@@ -38,10 +48,10 @@ export class MpesaQueueService {
   private readonly MAX_REQUESTS_PER_SECOND = 25;
   private readonly QUEUE_NAME = 'mpesa-payments';
   
-  constructor() {
+  constructor(config: MpesaConfig) {
     this.logger = new Logger('MpesaQueueService');
-    this.alertService = new AlertService();
-    this.mpesaService = new MpesaService();
+    this.alertService = new AlertService('MpesaQueueService');
+    this.mpesaService = new MpesaService(config);
     
     // Redis connection
     this.redis = new Redis({
@@ -145,45 +155,56 @@ export class MpesaQueueService {
         
         // Call M-Pesa STK Push
         const result = await this.mpesaService.initiateSTKPush({
-          phone_number: data.phone_number,
+          phoneNumber: data.phone_number,
           amount: data.amount,
-          account_reference: data.account_reference,
-          transaction_desc: data.transaction_desc,
-          callback_url: data.callback_url || process.env.MPESA_CALLBACK_URL
+          accountReference: data.account_reference,
+          transactionDesc: data.transaction_desc,
+          studentId: 0,
+          schoolId: parseInt(data.school_id || '0'),
+          idempotencyKey: undefined
         });
         
         await job.progress(50);
         
-        if (!result.success) {
-          throw new Error(result.error || 'M-Pesa request failed');
+        if (result.ResponseCode !== '0') {
+          throw new Error(result.ResponseDescription || 'M-Pesa request failed');
         }
         
+        // Create payment result
+        const paymentResult: PaymentResult = {
+          success: true,
+          transaction_id: result.CheckoutRequestID,
+          merchant_request_id: result.MerchantRequestID,
+          checkout_request_id: result.CheckoutRequestID
+        };
+        
         // Store transaction for callback matching
-        await this.storeTransaction(data, result);
+        await this.storeTransaction(data, paymentResult);
         
         await job.progress(100);
         
         this.logger.info('Payment processed successfully', {
           job_id: job.id,
-          transaction_id: result.checkout_request_id
+          transaction_id: result.CheckoutRequestID
         });
         
-        return result;
+        return paymentResult as any;
         
       } catch (error) {
         this.logger.error('Payment processing failed', {
           job_id: job.id,
           attempt: job.attemptsMade + 1,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
         
         // Alert on final failure
         if (job.attemptsMade >= 2) {
           await this.alertService.sendAlert({
             type: 'payment_failure',
-            severity: 'high',
+            title: 'Payment Failed',
             message: `Payment failed after 3 attempts: ${data.account_reference}`,
-            data: { job_id: job.id, school_id: data.school_id }
+            metadata: { job_id: job.id, school_id: data.school_id },
+            schoolId: data.school_id
           });
         }
         
@@ -229,20 +250,20 @@ export class MpesaQueueService {
         // Alert if queue is backing up
         if (waiting > 1000) {
           await this.alertService.sendAlert({
-            type: 'queue_backlog',
-            severity: 'high',
+            type: 'system_error',
+            title: 'Queue Backlog',
             message: `M-Pesa queue has ${waiting} waiting jobs`,
-            data: { waiting, active, delayed, failed }
+            metadata: { waiting, active, delayed, failed }
           });
         }
         
         // Alert if too many failures
         if (failed > 100) {
           await this.alertService.sendAlert({
-            type: 'high_failure_rate',
-            severity: 'critical',
+            type: 'system_error',
+            title: 'High Failure Rate',
             message: `M-Pesa queue has ${failed} failed jobs`,
-            data: { waiting, active, delayed, failed }
+            metadata: { waiting, active, delayed, failed }
           });
         }
         

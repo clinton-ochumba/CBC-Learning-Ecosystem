@@ -395,13 +395,10 @@ export class ReferralService {
     await this.emailService.send({
       to: principal.email,
       subject: 'New School Referred!',
-      template: 'referral_received',
-      data: {
-        school_name: referrerSchool.name,
-        referred_school: referredSchoolName,
-        reward_amount: this.REWARD_AMOUNT,
-        reward_type: '1 month free'
-      }
+      body: `Great news! ${referredSchoolName} has signed up using your referral code from ${referrerSchool.name}. You'll earn Ksh ${this.REWARD_AMOUNT} credit when they complete payment. - CBC Learning`,
+      html: `<p>Great news! <strong>${referredSchoolName}</strong> has signed up using your referral code from <strong>${referrerSchool.name}</strong>.</p><p>You'll earn <strong>Ksh ${this.REWARD_AMOUNT}</strong> credit when they complete payment.</p><p>- CBC Learning</p>`,
+      cc: [],
+      bcc: []
     });
     
     // Send SMS
@@ -428,13 +425,10 @@ export class ReferralService {
     await this.emailService.send({
       to: principal.email,
       subject: 'Referral Reward Granted!',
-      template: 'referral_reward',
-      data: {
-        school_name: referrerSchool.name,
-        reward_amount: referral.reward_amount,
-        reward_type: referral.reward_type,
-        new_expiry: referrerSchool.subscription_expires_at
-      }
+      body: `Your referral reward has been granted! School: ${referrerSchool.name}, Amount: Ksh ${referral.reward_amount}, Type: ${referral.reward_type}. - CBC Learning`,
+      html: `<p>Your referral reward has been granted!</p><p><strong>School:</strong> ${referrerSchool.name}</p><p><strong>Amount:</strong> Ksh ${referral.reward_amount}</p><p><strong>Type:</strong> ${referral.reward_type}</p><p>- CBC Learning</p>`,
+      cc: [],
+      bcc: []
     });
     
     await this.smsService.send({

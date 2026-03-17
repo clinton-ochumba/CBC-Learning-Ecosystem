@@ -89,12 +89,12 @@ export class OfflineSyncService {
       } catch (error) {
         this.logger.error('Sync record failed', {
           record_id: record.id,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
         
         results.errors.push({
           record_id: record.id,
-          error: error.message
+          error: (error as Error).message
         });
       }
     }

@@ -51,8 +51,8 @@ export class StudentsController {
       const user = req.user!;
       if (
         user.role !== 'super_admin' &&
-        user.role !== 'admin' &&
-        !(['teacher', 'principal'].includes(user.role) && user.schoolId === student.school_id) &&
+        user.role !== 'school_admin' &&
+        !(['teacher'].includes(user.role) && user.schoolId === student.school_id) &&
         !(user.role === 'parent' /* phone check done via parent_id */)
       ) {
         res.status(403).json({ success: false, message: 'Access denied' });

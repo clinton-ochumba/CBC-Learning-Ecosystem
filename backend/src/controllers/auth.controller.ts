@@ -33,10 +33,9 @@ function signAccessToken(user: AuthUser): string {
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
-      fullName: `${user.firstName} ${user.lastName}`,
     },
     secret,
-    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any
   );
 }
 
@@ -56,7 +55,6 @@ function buildUserResponse(dbUser: any): AuthUser {
     role:      dbUser.role,
     firstName: dbUser.first_name,
     lastName:  dbUser.last_name,
-    fullName:  `${dbUser.first_name} ${dbUser.last_name}`,
   };
 }
 

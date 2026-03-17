@@ -19,8 +19,12 @@ interface AlertPayload {
 }
 
 export class AlertService {
-  private logger = new Logger('AlertService');
+  private logger: Logger;
   private smsService = new SmsNotificationService(null as any); // SMS notify admins
+
+  constructor(context: string) {
+    this.logger = new Logger(context);
+  }
 
   async sendAlert(payload: AlertPayload): Promise<void> {
     try {

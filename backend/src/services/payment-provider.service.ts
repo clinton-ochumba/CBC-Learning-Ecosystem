@@ -59,7 +59,7 @@ export class PaymentProviderService {
   
   constructor() {
     this.logger = new Logger('PaymentProviderService');
-    this.alertService = new AlertService();
+    this.alertService = new AlertService('PaymentProviderService');
     
     // Initialize M-Pesa with config from environment
     const mpesaConfig: MpesaConfig = {
