@@ -6,11 +6,11 @@
  * Usage: node -e "require('./dist/database/migrate').run()"
  */
 
-import Knex from 'knex';
+import knex, { Knex } from 'knex';
 import path from 'path';
 
 export async function run(): Promise<void> {
-  const db = Knex({
+  const db: Knex = knex({
     client: 'postgresql',
     connection: process.env.DATABASE_URL
       ? { connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false } }

@@ -6,7 +6,7 @@
  * Always uses SSL in production.
  */
 
-import Knex from 'knex';
+import knex, { Knex } from 'knex';
 import { logger } from '../utils/logger';
 
 const isProd = process.env.NODE_ENV === 'production';
@@ -25,7 +25,7 @@ const connection = process.env.DATABASE_URL
     ssl:      process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   };
 
-export const db = Knex({
+export const db: Knex = knex({
   client: 'postgresql',
   connection,
   pool: {
