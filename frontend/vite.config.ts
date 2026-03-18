@@ -39,10 +39,16 @@ export default defineConfig({
     sourcemap: false,         // Disable in production to reduce bundle size
     rollupOptions: {
       output: {
-        manualChunks: {
-          react:  ['react', 'react-dom', 'react-router-dom'],
-          ui:     ['lucide-react'],
-          vendor: ['axios', 'date-fns', 'zustand'],
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('react')) {
+              return 'react';
+            } else if (id.includes('lucide-react')) {
+              return 'ui';
+            } else if (id.includes('axios') || id.includes('date-fns') || id.includes('zustand')) {
+              return 'vendor';
+            }
+          }
         },
       },
     },
