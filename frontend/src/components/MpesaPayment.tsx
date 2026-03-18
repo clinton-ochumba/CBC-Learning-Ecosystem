@@ -59,7 +59,7 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   const [paymentStatus, setPaymentStatus] = useState<
     'idle' | 'initiated' | 'waiting' | 'success' | 'failed'
   >('idle');
-  const [checkoutRequestId, setCheckoutRequestId] = useState<string | null>(null);
+  const [_checkoutRequestId, _setCheckoutRequestId] = useState<string | null>(null);
 
   useEffect(() => {
     // FIX BUG-10: Use sessionStorage instead of localStorage.
@@ -78,13 +78,13 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
   }, []);
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9]/g, '');
+    const value = e.currentTarget.value.replace(/[^0-9]/g, '');
     setAmount(value);
     setError(null);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^0-9+]/g, '');
+    const value = e.currentTarget.value.replace(/[^0-9+]/g, '');
     setPhoneNumber(value);
     setError(null);
   };
@@ -136,7 +136,7 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       });
 
       if (response.success && response.data) {
-        setCheckoutRequestId(response.data.checkoutRequestId);
+        _setCheckoutRequestId(response.data.checkoutRequestId);
         setPaymentStatus('waiting');
         setSuccess('Payment request sent! Please check your phone and enter M-Pesa PIN.');
 
@@ -144,8 +144,8 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
       } else {
         throw new Error(response.message);
       }
-    } catch (err: any) {
-      const errObj = err instanceof Error ? err : new Error(err.message || 'Payment failed');
+    } catch (err: unknown) {
+      const errObj = err instanceof Error ? err : new Error(String(err));
       setError(errObj.message);
       setPaymentStatus('failed');
       // TEST-06 FIX: call onError prop
@@ -191,11 +191,12 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         setError(msg);
         onError?.(new Error(msg));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg = 'Payment verification failed';
       setPaymentStatus('failed');
       setError(msg);
-      onError?.(new Error(msg));
+      const error = err instanceof Error ? err : new Error(msg);
+      onError?.(error);
     }
   };
 
@@ -371,9 +372,8 @@ export const MpesaPayment: React.FC<MpesaPaymentProps> = ({
         <p className="font-medium mb-2">Manual Payment (Alternative):</p>
         <ol className="list-decimal list-inside space-y-1 text-xs">
           <li>Go to M-Pesa menu on your phone</li>
-          <li>Select "Lipa na M-Pesa" → "Paybill"</li>
-          <li>Business Number: <strong>{student.school.code}</strong></li>
-          <li>Account: <strong>{student.school.code}#{student.id}</strong></li>
+          <li>Select &quot;Lipa na M-Pesa&quot; &rarr; &quot;Paybill&quot;</li>
+          <li>Business Number: <strong>{student.school.code}</strong></li>\n          <li>Account: <strong>{student.school.code}#{student.id}</strong></li>
           <li>Enter amount and M-Pesa PIN</li>
         </ol>
       </div>

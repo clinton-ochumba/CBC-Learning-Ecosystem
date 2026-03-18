@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 // Aesthetic: editorial warmth — cream parchment, deep rust, ink brown
@@ -438,9 +438,10 @@ function ClassbookTab() {
   if (selected) {
     const s = STUDENTS.find(x => x.id === selected);
     if (!s) return null;
-    const attHistory = Array.from({ length:14 }, (_,i) => ({
-      day: i+1, status: Math.random()>0.12 ? 'P' : Math.random()>0.5 ? 'L' : 'A',
-    }));
+    const attHistory = Array.from({ length: 14 }, (_, i) => ({
+      day: i + 1,
+      status: Math.random() > 0.12 ? 'P' : Math.random() > 0.5 ? 'L' : 'A',
+    })).sort(() => Math.random() - 0.5);
     return (
       <div>
         <button onClick={()=>setSelected(null)}

@@ -39,17 +39,8 @@ export default defineConfig({
     sourcemap: false,         // Disable in production to reduce bundle size
     rollupOptions: {
       output: {
-        manualChunks: (id) => {
-          if (id.includes('node_modules')) {
-            if (id.includes('react')) {
-              return 'react';
-            } else if (id.includes('lucide-react')) {
-              return 'ui';
-            } else if (id.includes('axios') || id.includes('date-fns') || id.includes('zustand')) {
-              return 'vendor';
-            }
-          }
-        },
+        // Manual chunk strategy removed due to Vite 8 Rolldown compatibility
+        // Default chunking provides adequate performance splitting
       },
     },
     // Target modern browsers — Safari 14+, Chrome 90+, Firefox 88+

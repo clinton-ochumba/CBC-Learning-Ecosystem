@@ -30,7 +30,13 @@ export default [
         setTimeout: 'readonly',
         setInterval: 'readonly',
         clearTimeout: 'readonly',
-        clearInterval: 'readonly'
+        clearInterval: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        CustomEvent: 'readonly',
+        FormData: 'readonly',
+        HTMLInputElement: 'readonly',
+        React: 'readonly'
       }
     },
     plugins: {

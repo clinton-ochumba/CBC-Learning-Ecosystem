@@ -13,7 +13,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/auth';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import LoginPage from './components/LoginPage';
@@ -47,8 +47,8 @@ function OfflineBanner({ isOnline }: { isOnline: boolean }) {
       setVisible(true);
     } else {
       // Keep "back online" message briefly visible
-      const t = setTimeout(() => setVisible(false), 3000);
-      return () => clearTimeout(t);
+      const handler = setTimeout(() => setVisible(false), 3000);
+      return () => clearTimeout(handler);
     }
   }, [isOnline]);
 
@@ -146,8 +146,8 @@ function ParentPortal() {
             feeBalance: 15000,
             school: { name: 'Demo School', code: 'DEM-001' },
           }}
-          onPaymentComplete={(receipt, amount) => console.log('Payment result:', receipt, amount)}
-          onSuccess={(receipt, amount) => console.log('Payment succeeded:', receipt, amount)}
+          onPaymentComplete={(receipt, amount) => console.warn('Payment result:', receipt, amount)}
+          onSuccess={(receipt, amount) => console.warn('Payment succeeded:', receipt, amount)}
           onError={(err) => console.error('Payment error:', err)}
         />
       </React.Suspense>

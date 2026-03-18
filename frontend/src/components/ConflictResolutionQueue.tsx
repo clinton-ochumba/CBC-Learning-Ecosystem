@@ -9,6 +9,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, CheckCircle, RefreshCw, GitMerge, ChevronDown, ChevronUp } from 'lucide-react';
 
+type RequestInit = {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string | FormData;
+};
+
 const API_BASE_URL = import.meta?.env?.VITE_API_BASE_URL || 'http://localhost:5000';
 
 type ResolutionWinner = 'local' | 'server' | 'merged';
@@ -17,8 +23,8 @@ interface SyncConflict {
   id: string;
   entity_type: 'student' | 'assessment' | 'attendance' | 'class';
   entity_id: string;
-  local_version: Record<string, any>;
-  server_version: Record<string, any>;
+  local_version: Record<string, unknown>;
+  server_version: Record<string, unknown>;
   resolution_strategy: 'last_write_wins' | 'field_merge' | 'manual';
   resolved: boolean;
   created_at: string;
@@ -148,7 +154,11 @@ export const ConflictResolutionQueue: React.FC<ConflictResolutionQueueProps> = (
   const toggleExpand = (id: string) => {
     setExpanded((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -273,7 +283,7 @@ export const ConflictResolutionQueue: React.FC<ConflictResolutionQueueProps> = (
                                 <span className="text-xs text-gray-500 w-24 flex-shrink-0">{field}</span>
                                 <input
                                   type="text"
-                                  defaultValue={localVal ?? serverVal ?? ''}
+                                  defaultValue={String(localVal ?? serverVal ?? '')}
                                   onChange={(e) =>
                                     updateMergedField(conflict.id, field, e.target.value)
                                   }

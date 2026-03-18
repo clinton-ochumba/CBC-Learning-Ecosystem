@@ -8,7 +8,6 @@ import { useAuthStore } from '../store/auth';
 
 const NAVY  = '#1B3A6B';
 const GOLD  = '#E8C840';
-const TEAL  = '#028090';
 const LGREY = '#F1F5F9';
 
 const DEMO_ACCOUNTS = [
