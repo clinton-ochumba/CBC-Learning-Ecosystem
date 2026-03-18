@@ -8,7 +8,7 @@ RUN apk add --no-cache python3 make g++ curl
 
 # Install dependencies (including dev for TypeScript compilation)
 COPY package*.json ./
-RUN npm cache clean --force && npm install --legacy-peer-deps
+RUN npm ci
 
 # Copy source and compile TypeScript
 COPY tsconfig.json ./
