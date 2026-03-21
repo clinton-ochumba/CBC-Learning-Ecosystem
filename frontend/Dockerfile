@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Cache npm layer
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Inject API URL at build time (Railway/Vercel override this via env)
 ARG VITE_API_BASE_URL=http://localhost:5000
